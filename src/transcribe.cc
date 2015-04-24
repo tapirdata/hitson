@@ -3,6 +3,7 @@
 #include "target_buffer.h"
 
 NAN_METHOD(Unescape) {
+  NanScope();
   TargetBuffer target;
   if (args.Length() < 1 || !(args[0]->IsString())) {
     return NanThrowTypeError("First argument should be a string");
@@ -16,6 +17,7 @@ NAN_METHOD(Unescape) {
 }
 
 NAN_METHOD(Escape) {
+  NanScope();
   TargetBuffer target;
   if (args.Length() < 1 || !(args[0]->IsString())) {
     return NanThrowTypeError("First argument should be a string");
