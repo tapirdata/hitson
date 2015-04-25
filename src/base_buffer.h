@@ -91,10 +91,12 @@ class BaseBuffer {
       return 0;
     }
 
+    inline void clear() {
+      buffer_.resize(0);
+    }
+
   protected:
-
     usc2vector buffer_;
-
 };
 
 #endif // TSON_BASE_BUFFER_H_

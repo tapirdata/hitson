@@ -103,6 +103,18 @@ class SourceBuffer: public BaseBuffer {
       msg.append(std::string("'"));
     }
 
+    void clear() {
+      BaseBuffer::clear();
+      err = 0;
+      nextIdx = 0;
+    }
+
+    void init(v8::Local<v8::String> s) {
+      clear();
+      appendHandle(s);
+      next();
+    }  
+
     int err;
     size_t nextIdx;
     uint16_t nextChar;

@@ -37,8 +37,7 @@ NAN_METHOD(Parser::Parse) {
     return NanThrowTypeError("First argument should be a string");
   }
   Local<String> s = args[0].As<String>();
-  ps.source.appendHandle(s);
-  ps.source.next();
+  ps.source.init(s);
   Local<Value> result = ps.getValue();
   if (ps.source.err) {
     TargetBuffer errorMsg;

@@ -131,12 +131,6 @@ class TargetBuffer: public BaseBuffer {
       return 0;
     }
 
-
-    inline void clear() {
-      buffer_.resize(0);
-    }
-
-
 };
 
 #endif // TSON_TARGET_BUFFER_H_
