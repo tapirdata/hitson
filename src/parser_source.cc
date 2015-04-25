@@ -1,29 +1,44 @@
 #include "parser_source.h"
+#include "parser.h"
+
+v8::Local<v8::String> ParserSource::getText() {
+ int err = source.pullUnescapedBuffer();
+ if (err) {
+   makeError();
+   return NanNew("");
+ }  
+ return source.nextBuffer.getHandle();
+}  
 
 v8::Local<v8::Value> ParserSource::getLiteral() {
+  int err = 0;
   v8::Local<v8::Value> value;
+  if (hasError) return value;
   if (source.nextType == TEXT) {
+    size_t litBeginIdx = source.nextIdx - 1;
     switch (source.nextChar) {
       case 'u':
-        source.next();
+        next();
         value = NanUndefined();
         break;
       case 'n':
-        source.next();
+        next();
         value = NanNull();
         break;
       case 'f':
-        source.next();
+        next();
         value = NanFalse();
         break;
       case 't':
-        source.next();
+        next();
         value = NanTrue();
         break;
       default: {
-        source.pullUnescapedString();
-        if (source.err)
+        err = source.pullUnescapedString();
+        if (err) {
+          makeError();
           break;
+        }
         const char* begin = source.nextString.data();
         char* end;
         int x = strtol(begin, &end, 10);
@@ -37,7 +52,13 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
             break;
           }
         }
-        source.err = SYNTAX_ERROR;
+        {
+          TargetBuffer msg;
+          msg.append(std::string("unexpected literal '"));
+          msg.append(source.nextString);
+          msg.append(std::string("'"));
+          makeError(litBeginIdx, &msg);
+        }  
       }
     }
   } else {
@@ -46,11 +67,34 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
   return value;
 }
 
+    /*
+      void makeError(TargetBuffer& msg) {
+      size_t errIdx = nextIdx;
+      uint16_t errChar = nextChar;
+      if (nextType == END) {
+        errChar = 0;
+      } else {
+        --errIdx;
+      }
+      msg.append(std::string("Unexpected '"));
+      if (errChar) {
+        msg.push(nextChar);
+      }
+      msg.append(std::string("' at '"));
+      msg.append(getBuffer(), 0, errIdx);
+      msg.push('^');
+      msg.append(getBuffer(), errIdx);
+      msg.append(std::string("'"));
+    }
+    */
+
+
 v8::Local<v8::Array> ParserSource::getArray() {
   v8::Local<v8::Array> value = NanNew<v8::Array>();
+  if (hasError) goto end;
   switch (source.nextType) {
     case ENDARRAY:
-      source.next();
+      next();
       break;
     default:
       goto stageNext;
@@ -60,41 +104,39 @@ v8::Local<v8::Array> ParserSource::getArray() {
 stageNext:
   switch (source.nextType) {
     case TEXT:
-      source.pullUnescapedBuffer();
-      if (source.err)
-        break;
-      value->Set(value->Length(), source.nextBuffer.getHandle());
+    case QUOTE:
+      value->Set(value->Length(), getText());
       goto stageHave;
     case LITERAL:
-      source.next();
+      next();
       value->Set(value->Length(), getLiteral());
-      if (source.err) goto end;
+      if (hasError) goto end;
       goto stageHave;
     case ARRAY:
-      source.next();
+      next();
       value->Set(value->Length(), getArray());
-      if (source.err) goto end;
+      if (hasError) goto end;
       goto stageHave;
     case OBJECT:
-      source.next();
+      next();
       value->Set(value->Length(), getObject());
-      if (source.err) goto end;
+      if (hasError) goto end;
       goto stageHave;
     default:
-      source.err = SYNTAX_ERROR;
+      makeError();
   }
   goto end;
 
 stageHave:
   switch (source.nextType) {
     case ENDARRAY:
-      source.next();
+      next();
       break;
     case PIPE:
-      source.next();
+      next();
       goto stageNext;
     default:
-      source.err = SYNTAX_ERROR;
+      makeError();
   }
   goto end;
 
@@ -105,10 +147,11 @@ end:
 v8::Local<v8::Object> ParserSource::getObject() {
   v8::Local<v8::Object> value = NanNew<v8::Object>();
   v8::Local<v8::String> key;
+  if (hasError) goto end;
 
   switch (source.nextType) {
     case ENDOBJECT:
-      source.next();
+      next();
       break;
     default:
       goto stageNext;
@@ -118,76 +161,72 @@ v8::Local<v8::Object> ParserSource::getObject() {
 stageNext:
   switch (source.nextType) {
     case TEXT:
-      source.pullUnescapedBuffer();
-      if (source.err)
-        break;
-      key = source.nextBuffer.getHandle();
+    case QUOTE:
+      key = getText();
       goto stageHaveKey;
     case LITERAL:
-      source.next();
+      next();
       key = NanNew<v8::String>();
       goto stageHaveKey;
     default:
-      source.err = SYNTAX_ERROR;
+      makeError();
   }
   goto end;
 
 stageHaveKey:
   switch (source.nextType) {
     case ENDOBJECT:
-      source.next();
+      next();
       value->Set(key, NanTrue());
       break;
     case PIPE:
-      source.next();
+      next();
       value->Set(key, NanTrue());
       goto stageNext;
     case IS:
-      source.next();
+      next();
       goto stageHaveColon;
     default:
-      source.err = SYNTAX_ERROR;
+      makeError();
   }
   goto end;
 
 stageHaveColon:
   switch (source.nextType) {
     case TEXT:
-      source.pullUnescapedBuffer();
-      if (source.err)
-        break;
-      value->Set(key, source.nextBuffer.getHandle());
+    case QUOTE:
+      value->Set(key, getText());
       goto stageHaveValue;
     case LITERAL:
-      source.next();
+      next();
       value->Set(key, getLiteral());
-      if (source.err) goto end;
+      if (hasError) goto end;
       goto stageHaveValue;
     case ARRAY:
-      source.next();
+      next();
       value->Set(key, getArray());
-      if (source.err) goto end;
+      if (hasError) goto end;
       goto stageHaveValue;
     case OBJECT:
-      source.next();
+      next();
       value->Set(key, getObject());
-      if (source.err) goto end;
+      if (hasError) goto end;
       goto stageHaveValue;
     default:
-      source.err = SYNTAX_ERROR;
+      makeError();
   }
   goto end;
 
 stageHaveValue:
   switch (source.nextType) {
     case ENDOBJECT:
-      source.next();
+      next();
       break;
     case PIPE:
-      source.next();
+      next();
       goto stageNext;
     default:
-      source.err = SYNTAX_ERROR;
+      makeError();
   }
   goto end;
 
@@ -197,31 +236,52 @@ end:
 
 v8::Local<v8::Value> ParserSource::getValue() {
   v8::Local<v8::Value> value;
+  if (hasError) return value;
   switch (source.nextType) {
     case TEXT:
-      source.pullUnescapedBuffer();
-      if (source.err)
-        break;
-      value = source.nextBuffer.getHandle();
+    case QUOTE:
+      value = getText();
       break;
     case LITERAL:
-      source.next();
+      next();
       value = getLiteral();
       break;
     case ARRAY:
-      source.next();
+      next();
       value = getArray();
       break;
     case OBJECT:
-      source.next();
+      next();
       value = getObject();
       break;
     default:
-      source.err = SYNTAX_ERROR;
+      makeError();
   }
   if (source.nextType != END) {
-    source.err = SYNTAX_ERROR;
+    makeError();
   }
   return value;
+}
+
+void ParserSource::makeError(int pos, const BaseBuffer* cause) {
+  if (pos < 0) {
+    pos = source.nextIdx;
+    if (pos > 0)
+      --pos;
+  }
+  const int argc = 3;
+  v8::Local<v8::String> hCause;
+  if (cause) {
+    hCause = cause->getHandle();
+  } else {  
+    hCause = NanNew("");
+  }
+  v8::Local<v8::Value> argv[argc] = {
+    source.getHandle(), 
+    NanNew<v8::Number>(pos),
+    hCause
+  };
+  error = NanNew<v8::Function>(parser_.errorClass_)->NewInstance(argc, argv);
+  hasError = true;
 }
 

@@ -10,20 +10,29 @@ using v8::Function;
 using v8::FunctionTemplate;
 
 
-Parser::Parser() {};
-Parser::~Parser() {};
+Parser::Parser(Local<Function> errorClass): ps_(*this) {
+  NanAssignPersistent(errorClass_, errorClass);
+};
+
+Parser::~Parser() {
+  NanDisposePersistent(errorClass_);
+};
 
 Persistent<Function> Parser::constructor;
 
 NAN_METHOD(Parser::New) {
   NanScope();
+  if (args.Length() < 1 || !(args[0]->IsFunction())) {
+    return NanThrowTypeError("First argument should be an error constructor");
+  }  
+  Local<Function> errorClass = args[0].As<Function>();
   if (args.IsConstructCall()) {
-    Parser* obj = new Parser();
+    Parser* obj = new Parser(errorClass);
     obj->Wrap(args.This());
     NanReturnValue(args.This());
   } else {
-    const int argc = 0;
-    Local<Value> argv[argc] = {};
+    const int argc = 1;
+    Local<Value> argv[argc] = {errorClass};
     Local<Function> cons = NanNew<Function>(constructor);
     NanReturnValue(cons->NewInstance(argc, argv));
   }  
@@ -32,17 +41,18 @@ NAN_METHOD(Parser::New) {
 NAN_METHOD(Parser::Parse) {
   NanScope();
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
-  ParserSource &ps = self->ps_;
   if (args.Length() < 1 || !(args[0]->IsString())) {
     return NanThrowTypeError("First argument should be a string");
   }
   Local<String> s = args[0].As<String>();
-  ps.source.init(s);
+  ParserSource &ps = self->ps_;
+  ps.init(s);
   Local<Value> result = ps.getValue();
-  if (ps.source.err) {
-    TargetBuffer errorMsg;
-    ps.source.makeError(errorMsg);
-    return NanThrowError(errorMsg.getHandle());
+  if (ps.hasError) {
+    // TargetBuffer errorMsg;
+    // ps.source.makeError(errorMsg);
+    // result = ps.error; 
+    return NanThrowError(ps.error);
   }
   NanReturnValue(result);
 

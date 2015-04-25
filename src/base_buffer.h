@@ -31,7 +31,7 @@ class BaseBuffer {
       source->Write(buffer_.data() + oldSize, start, length, v8::String::NO_NULL_TERMINATION);
     }
 
-    v8::Local<v8::String> getHandle() {
+    inline v8::Local<v8::String> getHandle() const {
       return NanNew<v8::String>(buffer_.data(), buffer_.size());
     }
 

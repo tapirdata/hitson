@@ -28,17 +28,17 @@ class SourceBuffer: public BaseBuffer {
     }
 
     SourceBuffer():
-      err(0),
       nextIdx(0)
     {}
 
-    inline int next() {
+    inline void next() {
       size_t len = buffer_.size();
       if (nextIdx >= len) {
         nextType = END;
       } else {
         nextChar = buffer_[nextIdx++];
         nextType = SourceBuffer::getCtype(nextChar);
+        /*
         if (nextType == QUOTE) {
           if (nextIdx == len) {
             return SYNTAX_ERROR;
@@ -50,62 +50,64 @@ class SourceBuffer: public BaseBuffer {
           }
           nextType = TEXT;
         }
+        */
+      }
+    }
+
+    inline int pullUnescaped(TargetBuffer& target) {
+      size_t len = buffer_.size();
+      while (true) {
+        if (nextType == QUOTE) {
+          if (nextIdx == len) {
+            return SYNTAX_ERROR;
+          }
+          nextChar = getUnescapeChar(buffer_[nextIdx++]);
+          if (!nextChar) {
+            return SYNTAX_ERROR;
+          }
+        }  
+        target.push(nextChar);
+        next();
+        if (nextType != TEXT && nextType != QUOTE) {
+          break;
+        }
       }
       return 0;
     }
 
-    inline void pullUnescaped(TargetBuffer& target) {
+    inline int pullUnescaped(std::string& target) {
+      size_t len = buffer_.size();
       while (true) {
-        target.push(nextChar);
-        next();
-        if (err || nextType != TEXT) {
-          break;
-        }
-      }
-    }
-
-    inline void pullUnescaped(std::string& target) {
-      while (true) {
+        if (nextType == QUOTE) {
+          if (nextIdx == len) {
+            return SYNTAX_ERROR;
+          }
+          nextChar = getUnescapeChar(buffer_[nextIdx++]);
+          if (!nextChar) {
+            return SYNTAX_ERROR;
+          }
+        }  
         target.push_back(nextChar);
         next();
-        if (err || nextType != TEXT) {
+        if (nextType != TEXT && nextType != QUOTE) {
           break;
         }
       }
+      return 0;
     }
 
-    inline void pullUnescapedBuffer() {
+    inline int pullUnescapedBuffer() {
       nextBuffer.clear();
-      pullUnescaped(nextBuffer);
+      return pullUnescaped(nextBuffer);
     }
 
-    inline void pullUnescapedString() {
+    inline int pullUnescapedString() {
       nextString.clear();
-      pullUnescaped(nextString);
-    }
-
-    void makeError(TargetBuffer& msg) {
-      size_t errIdx = nextIdx;
-      uint16_t errChar = nextChar;
-      if (nextType == END) {
-        errChar = 0;
-      } else {
-        --errIdx;
-      }
-      msg.append(std::string("Unexpected '"));
-      if (errChar) {
-        msg.push(nextChar);
-      }
-      msg.append(std::string("' at '"));
-      msg.append(getBuffer(), 0, errIdx);
-      msg.push('^');
-      msg.append(getBuffer(), errIdx);
-      msg.append(std::string("'"));
+      return pullUnescaped(nextString);
     }
 
     void clear() {
       BaseBuffer::clear();
-      err = 0;
       nextIdx = 0;
     }
 
@@ -115,7 +117,6 @@ class SourceBuffer: public BaseBuffer {
       next();
     }  
 
-    int err;
     size_t nextIdx;
     uint16_t nextChar;
     Ctype nextType;
