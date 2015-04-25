@@ -9,8 +9,8 @@ using v8::FunctionTemplate;
 void Init(Handle<Object> exports) {
   Stringifier::Init(exports);
   Parser::Init(exports);
-  exports->Set(NanNew("escape"), NanNew<FunctionTemplate>(Escape)->GetFunction());
-  exports->Set(NanNew("unescape"), NanNew<FunctionTemplate>(Unescape)->GetFunction());
+  // exports->Set(NanNew("escape"), NanNew<FunctionTemplate>(Escape)->GetFunction());
+  // exports->Set(NanNew("unescape"), NanNew<FunctionTemplate>(Unescape)->GetFunction());
 }
 
 NODE_MODULE(hitson, Init)

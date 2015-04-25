@@ -9,6 +9,7 @@ class Parser: public node::ObjectWrap {
 
   public:
     static void Init(v8::Handle<v8::Object>);
+    v8::Local<v8::Object> createError(int argc, v8::Local<v8::Value> argv[]) const;
 
   private:
     Parser(v8::Local<v8::Function>);
@@ -16,6 +17,7 @@ class Parser: public node::ObjectWrap {
 
     static v8::Persistent<v8::Function> constructor;
     static NAN_METHOD(New);
+    static NAN_METHOD(Unescape);
     static NAN_METHOD(Parse);
 
     v8::Persistent<v8::Function> errorClass_;

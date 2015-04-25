@@ -281,7 +281,7 @@ void ParserSource::makeError(int pos, const BaseBuffer* cause) {
     NanNew<v8::Number>(pos),
     hCause
   };
-  error = NanNew<v8::Function>(parser_.errorClass_)->NewInstance(argc, argv);
+  error = parser_.createError(argc, argv);
   hasError = true;
 }
 

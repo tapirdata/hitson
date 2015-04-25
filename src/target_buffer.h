@@ -33,6 +33,7 @@ class TargetBuffer: public BaseBuffer {
 
     template<typename S>
     inline int appendUnescaped(const S& source, int start=0, int length=-1) {
+      // return error pos; -1 for ok
       if (length < 0) {
         length = source.size() - start;
       }
@@ -44,19 +45,19 @@ class TargetBuffer: public BaseBuffer {
         uint16_t xc = *sourcePick++;
         if (xc == '`') {
           if (sourcePick == sourceEnd) {
-            return SYNTAX_ERROR;
+            return sourcePick - sourceBegin;
           }
           xc = *sourcePick++;
           uint16_t c = getUnescapeChar(xc);
           if (!c) {
-            return SYNTAX_ERROR;
+            return sourcePick - sourceBegin - 1; 
           }
           push (c);
         } else {
           push (xc);
         }
       }
-      return 0;
+      return -1;
     }
 
     inline void appendHandleEscaped(v8::Local<v8::String> source, int start=0, int length=-1) {
@@ -100,6 +101,7 @@ class TargetBuffer: public BaseBuffer {
     }
 
     inline int appendHandleUnescaped(v8::Local<v8::String> source, int start=0, int length=-1) {
+      // return error pos; -1 for ok
       size_t oldSize = buffer_.size();
       if (length < 0) {
         length = source->Length() - start;
@@ -115,12 +117,12 @@ class TargetBuffer: public BaseBuffer {
         uint16_t xc = *replFrom++;
         if (xc == '`') {
           if (replFrom == replEnd) {
-            return SYNTAX_ERROR;
+            return replFrom - putBegin;
           }
           xc = *replFrom++;
           uint16_t c = getUnescapeChar(xc);
           if (!c) {
-            return SYNTAX_ERROR;
+            return replFrom - putBegin - 1; 
           }
           *replTo++ = c;
         } else {
@@ -128,7 +130,7 @@ class TargetBuffer: public BaseBuffer {
         }
       }
       buffer_.resize(oldSize + (replTo - putBegin));
-      return 0;
+      return -1;
     }
 
 };

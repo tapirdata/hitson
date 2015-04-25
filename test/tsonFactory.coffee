@@ -7,12 +7,17 @@ class ParseError extends Error
   constructor: (@s, @pos, cause) ->
     @message = 'bad bad syntax'
 
+class StringifierError extends Error
+  name: 'ParseError'
+  constructor: (@s, @pos, cause) ->
+    @message = 'bad bad syntax'
+
 
 
 module.exports = (options) ->
-  stringifier = new hitson.Stringifier()
+  stringifier = new hitson.Stringifier StringifierError
   parser = new hitson.Parser ParseError
-  escape: hitson.escape
-  unescape: hitson.unescape
+  escape: (x) -> stringifier.escape x
+  unescape: (x) -> parser.unescape x
   stringify: (x) -> stringifier.stringify x
   parse: (x) -> parser.parse x

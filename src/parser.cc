@@ -38,25 +38,43 @@ NAN_METHOD(Parser::New) {
   }  
 }
 
+NAN_METHOD(Parser::Unescape) {
+  NanScope();
+  TargetBuffer target;
+  if (args.Length() < 1 || !(args[0]->IsString())) {
+    return NanThrowTypeError("First argument should be a string");
+  }
+  v8::Local<v8::String> s = args[0].As<v8::String>();
+
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
+  int errPos = target.appendHandleUnescaped(s);
+  if (errPos >= 0) {
+    const int argc = 2;
+    v8::Local<v8::Value> argv[argc] = { s, NanNew<v8::Number>(errPos) };
+    return NanThrowError(self->createError(argc, argv));
+  }
+  NanReturnValue(target.getHandle());
+}
+
+
 NAN_METHOD(Parser::Parse) {
   NanScope();
-  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
   if (args.Length() < 1 || !(args[0]->IsString())) {
     return NanThrowTypeError("First argument should be a string");
   }
   Local<String> s = args[0].As<String>();
+
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
   ParserSource &ps = self->ps_;
   ps.init(s);
   Local<Value> result = ps.getValue();
   if (ps.hasError) {
-    // TargetBuffer errorMsg;
-    // ps.source.makeError(errorMsg);
-    // result = ps.error; 
     return NanThrowError(ps.error);
   }
   NanReturnValue(result);
 
 }
+
 
 void Parser::Init(v8::Handle<v8::Object> exports) {
   NanScope();
@@ -65,11 +83,17 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
   newTpl->SetClassName(NanNew("Parser"));
   newTpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+  NODE_SET_PROTOTYPE_METHOD(newTpl, "unescape", Unescape);
   NODE_SET_PROTOTYPE_METHOD(newTpl, "parse", Parse);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
   exports->Set(NanNew("Parser"), newTpl->GetFunction());
 }
+
+
+Local<Object> Parser::createError(int argc, Local<Value> *argv) const {
+  return NanNew<v8::Function>(errorClass_)->NewInstance(argc, argv);
+}  
 
 
 
