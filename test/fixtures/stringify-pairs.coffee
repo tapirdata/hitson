@@ -1,3 +1,7 @@
+
+cyclicObj1 = a: 3
+cyclicObj1.x = cyclicObj1
+
 module.exports = [
   ['abc', 'abc']
   ['', '#']
@@ -7,7 +11,9 @@ module.exports = [
   [false, '#f']
   [null, '#n']
   [undefined, '#u']
-  ['ab:c', 'ab`ic']
+  [undefined, '#u']
+  [new Date(1400000000000), '#d1400000000000']
+  [':abc', '`iabc']
   # array
   [['ab'], '[ab]']
   [[], '[]']
@@ -29,6 +35,8 @@ module.exports = [
   [{a:{}}, '{a:{}}']
   [{a:{a:['b',{c:3}],b:{c:[8,2]}}}, '{a:{a:[b|{c:#3}]|b:{c:[#8|#2]}}}']
   [{'[a]':'[b]'}, '{`aa`e:`ab`e}']
+  #cyclic
+  # [cyclicObj1, '{a:#3|x:|0}']
   # fail
   ['__fail__', '']
   ['__fail__', '#x']

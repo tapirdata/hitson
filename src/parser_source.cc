@@ -1,6 +1,37 @@
 #include "parser_source.h"
 #include "parser.h"
 
+
+
+inline bool getNumber(const std::string& s, v8::Local<v8::Value>& value) {
+  const char* begin = s.data();
+  char* end;
+  int x = strtol(begin, &end, 10);
+  if (end == begin + s.size()) {
+    value = NanNew<v8::Number>(x);
+    return true;
+  } else {
+    double x = strtod(begin, &end);
+    if (end == begin + s.size()) {
+      value = NanNew<v8::Number>(x);
+      return true;
+    }
+  }
+  return false;
+}
+
+inline bool getDate(const std::string& s, v8::Local<v8::Value>& value) {
+  // std::cout << "getDate: " << s << std::endl;
+  const char* begin = s.data();
+  char* end;
+  double x = strtod(begin + 1, &end);
+  if (end == begin + s.size()) {
+    value = NanNew<v8::Date>(x);
+    return true;
+  }
+  return false;
+}
+
 v8::Local<v8::String> ParserSource::getText() {
  int err = source.pullUnescapedBuffer();
  if (err) {
@@ -11,10 +42,10 @@ v8::Local<v8::String> ParserSource::getText() {
 }  
 
 v8::Local<v8::Value> ParserSource::getLiteral() {
-  int err = 0;
   v8::Local<v8::Value> value;
   if (hasError) return value;
   if (source.nextType == TEXT) {
+    bool litErr = false;
     size_t litBeginIdx = source.nextIdx - 1;
     switch (source.nextChar) {
       case 'u':
@@ -33,33 +64,31 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
         next();
         value = NanTrue();
         break;
-      default: {
-        err = source.pullUnescapedString();
-        if (err) {
+      case 'd':
+        if (source.pullUnescapedString()) {
           makeError();
           break;
         }
-        const char* begin = source.nextString.data();
-        char* end;
-        int x = strtol(begin, &end, 10);
-        if (end == begin + source.nextString.size()) {
-          value = NanNew<v8::Number>(x);
+        if (!getDate(source.nextString, value)) {
+          litErr = true;
+        }  
+        break;
+      default: {
+        if (source.pullUnescapedString()) {
+          makeError();
           break;
-        } else {
-          double x = strtod(begin, &end);
-          if (end == begin + source.nextString.size()) {
-            value = NanNew<v8::Number>(x);
-            break;
-          }
         }
-        {
-          TargetBuffer msg;
-          msg.append(std::string("unexpected literal '"));
-          msg.append(source.nextString);
-          msg.append(std::string("'"));
-          makeError(litBeginIdx, &msg);
+        if (!getNumber(source.nextString, value)) {
+          litErr = true;
         }  
       }
+    }
+    if (litErr) {
+      TargetBuffer msg;
+      msg.append(std::string("unexpected literal '"));
+      msg.append(source.nextString);
+      msg.append(std::string("'"));
+      makeError(litBeginIdx, &msg);
     }
   } else {
     value = NanNew<v8::String>();

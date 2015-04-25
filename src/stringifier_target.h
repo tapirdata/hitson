@@ -97,6 +97,10 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
     } else {
       target.push('f');
     }
+  } else if (x->IsDate()) {
+    target.push('#');
+    target.push('d');
+    target.appendHandle(NanNew<v8::Number>(x->NumberValue())->ToString());
   } else if (x->IsArray()) {
     v8::Local<v8::Array> array = x.As<v8::Array>();
     uint32_t len = array->Length();
