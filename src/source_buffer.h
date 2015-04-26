@@ -38,19 +38,6 @@ class SourceBuffer: public BaseBuffer {
       } else {
         nextChar = buffer_[nextIdx++];
         nextType = SourceBuffer::getCtype(nextChar);
-        /*
-        if (nextType == QUOTE) {
-          if (nextIdx == len) {
-            return SYNTAX_ERROR;
-          }
-          uint16_t c = buffer_[nextIdx++];
-          nextChar = getUnescapeChar(c);
-          if (!nextChar) {
-            return SYNTAX_ERROR;
-          }
-          nextType = TEXT;
-        }
-        */
       }
     }
 

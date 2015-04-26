@@ -50,7 +50,7 @@ class BaseBuffer {
     static inline uint16_t getEscapeChar(uint16_t c) {
       switch (c) {
         case '{':
-          return 'b';
+          return 'o';
         case '}':
           return 'c';
         case '[':
@@ -60,7 +60,7 @@ class BaseBuffer {
         case ':':
           return 'i';
         case '#':
-          return 'n';
+          return 'l';
         case '|':
           return 'p';
         case '`':
@@ -71,7 +71,7 @@ class BaseBuffer {
 
     static inline uint16_t getUnescapeChar(uint16_t c) {
       switch (c) {
-        case 'b':
+        case 'o':
           return '{';
         case 'c':
           return '}';
@@ -81,7 +81,7 @@ class BaseBuffer {
           return ']';
         case 'i':
           return ':';
-        case 'n':
+        case 'l':
           return '#';
         case 'p':
           return '|';
