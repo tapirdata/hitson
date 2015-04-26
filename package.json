@@ -1,12 +1,18 @@
 {
   "name": "tson-addon",
   "version": "0.2.1",
-  "description": "A serializer/deserializer",
+  "description": "An addon for faster TSON stringifying/parsing",
   "main": "./lib",
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register"
   },
-  "keywords": [],
+  "keywords": [
+    "addon",
+    "C++",
+    "TSON",
+    "stringify",
+    "parse"
+  ],
   "repository": {
     "type": "github",
     "url": "https://github.com/tapirdata/tson-addon"
