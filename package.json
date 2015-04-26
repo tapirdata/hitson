@@ -1,7 +1,7 @@
 {
-  "name": "tson-addon",
+  "name": "wson-addon",
   "version": "0.2.2",
-  "description": "An addon for faster TSON stringifying/parsing",
+  "description": "An addon for faster WSON stringifying/parsing",
   "main": "./lib",
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register"
@@ -9,13 +9,13 @@
   "keywords": [
     "addon",
     "C++",
-    "TSON",
+    "WSON",
     "stringify",
     "parse"
   ],
   "repository": {
     "type": "github",
-    "url": "https://github.com/tapirdata/tson-addon"
+    "url": "https://github.com/tapirdata/wson-addon"
   },
   "author": {
     "name": "Andreas Riedl",

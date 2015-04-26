@@ -1,5 +1,5 @@
-#ifndef TSON_STINGIFIER_TARGET_H_
-#define TSON_STINGIFIER_TARGET_H_
+#ifndef WSON_STINGIFIER_TARGET_H_
+#define WSON_STINGIFIER_TARGET_H_
 
 #include "target_buffer.h"
 #include <algorithm>
@@ -201,5 +201,5 @@ void ObjectAdaptor::emit(StringifierTarget& st) {
 }
 
 
-#endif // TSON_STINGIFIER_TARGET_H_
+#endif // WSON_STINGIFIER_TARGET_H_
 

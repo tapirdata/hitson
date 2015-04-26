@@ -1,5 +1,5 @@
-#ifndef TSON_TARGET_BUFFER_H_
-#define TSON_TARGET_BUFFER_H_
+#ifndef WSON_TARGET_BUFFER_H_
+#define WSON_TARGET_BUFFER_H_
 
 #include "base_buffer.h"
 #include <iostream>
@@ -135,6 +135,6 @@ class TargetBuffer: public BaseBuffer {
 
 };
 
-#endif // TSON_TARGET_BUFFER_H_
+#endif // WSON_TARGET_BUFFER_H_
 
 

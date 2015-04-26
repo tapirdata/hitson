@@ -1,5 +1,5 @@
-#ifndef TSON_PARSER_SOURCE_H_
-#define TSON_PARSER_SOURCE_H_
+#ifndef WSON_PARSER_SOURCE_H_
+#define WSON_PARSER_SOURCE_H_
 
 #include "source_buffer.h"
 
@@ -28,5 +28,5 @@ class ParserSource {
 };
 
 
-#endif // TSON_PARSER_SOURCE_H_
+#endif // WSON_PARSER_SOURCE_H_
 

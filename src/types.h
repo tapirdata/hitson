@@ -1,5 +1,5 @@
-#ifndef TSON_TYPES_H_
-#define TSON_TYPES_H_
+#ifndef WSON_TYPES_H_
+#define WSON_TYPES_H_
 
 #include <nan.h>
 #include <vector>
@@ -22,5 +22,5 @@ enum Ctype {
 
 #define SYNTAX_ERROR -1
 
-#endif // TSON_TYPES_H_
+#endif // WSON_TYPES_H_
 

@@ -1,5 +1,5 @@
-#ifndef TSON_STINGIFIER_H_
-#define TSON_STINGIFIER_H_
+#ifndef WSON_STINGIFIER_H_
+#define WSON_STINGIFIER_H_
 
 #include "stringifier_target.h"
 
@@ -21,5 +21,5 @@ class Stringifier: public node::ObjectWrap {
 };
 
 
-#endif // TSON_STINGIFIER_H_
+#endif // WSON_STINGIFIER_H_
 

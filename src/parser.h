@@ -1,5 +1,5 @@
-#ifndef TSON_PARSER_H_
-#define TSON_PARSER_H_
+#ifndef WSON_PARSER_H_
+#define WSON_PARSER_H_
 
 #include "parser_source.h"
 
@@ -24,6 +24,6 @@ class Parser: public node::ObjectWrap {
     ParserSource ps_;
 };
 
-#endif // TSON_PARSER_H_
+#endif // WSON_PARSER_H_
 
 

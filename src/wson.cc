@@ -10,6 +10,6 @@ void Init(Handle<Object> exports) {
   Parser::Init(exports);
 }
 
-NODE_MODULE(tson_addon, Init)
+NODE_MODULE(wson_addon, Init)
 
 

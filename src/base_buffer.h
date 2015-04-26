@@ -1,5 +1,5 @@
-#ifndef TSON_BASE_BUFFER_H_
-#define TSON_BASE_BUFFER_H_
+#ifndef WSON_BASE_BUFFER_H_
+#define WSON_BASE_BUFFER_H_
 
 #include "types.h"
 
@@ -99,4 +99,4 @@ class BaseBuffer {
     usc2vector buffer_;
 };
 
-#endif // TSON_BASE_BUFFER_H_
+#endif // WSON_BASE_BUFFER_H_

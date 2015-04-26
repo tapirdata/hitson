@@ -1,4 +1,4 @@
 module.exports = [
-  {name: 'Tson', options: {}}
+  {name: 'WSON', options: {}}
 ]
 
