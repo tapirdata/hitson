@@ -15,7 +15,7 @@ class ObjectAdaptor {
     struct Entry {
       size_t keyBeginIdx;
       size_t keyLength;
-      v8::Handle<v8::Value> value;
+      v8::Local<v8::Value> value;
     };
     TargetBuffer keyBunch;
     std::vector<Entry> entries;

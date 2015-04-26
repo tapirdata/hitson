@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "tson",
+      "target_name": "hitson",
       "sources": [ 
         "src/parser.cc",
         "src/stringifier_target.cc",
@@ -9,8 +9,7 @@
         "src/parser_source.cc",
         "src/tson.cc"
       ],
-      "include_dirs": [ "<!(node -e \"require('nan')\")" ],
-      "cflags": ["-std=c++11"]
+      "include_dirs": [ "<!(node -e \"require('nan')\")" ]
     }
   ]
 }
