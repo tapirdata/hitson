@@ -1,6 +1,6 @@
 {
   "name": "tson-addon",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "An addon for faster TSON stringifying/parsing",
   "main": "./lib",
   "scripts": {
