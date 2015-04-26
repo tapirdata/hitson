@@ -1,6 +1,6 @@
 'use strict'
 
-hitson = require '../lib/'
+tson = require '../lib/'
 
 class ParseError extends Error
   name: 'ParseError'
@@ -15,8 +15,8 @@ class StringifierError extends Error
 
 
 module.exports = (options) ->
-  stringifier = new hitson.Stringifier StringifierError
-  parser = new hitson.Parser ParseError
+  stringifier = new tson.Stringifier StringifierError
+  parser = new tson.Parser ParseError
   escape: (x) -> stringifier.escape x
   unescape: (x) -> parser.unescape x
   stringify: (x) -> stringifier.stringify x

@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "hitson",
+      "target_name": "tson_addon",
       "sources": [ 
         "src/parser.cc",
         "src/stringifier_target.cc",

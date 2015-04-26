@@ -1,5 +1,5 @@
 {
-  "name": "hitson",
+  "name": "tson-addon",
   "version": "0.1.0",
   "description": "A serializer/deserializer",
   "main": "./lib",
@@ -9,7 +9,7 @@
   "keywords": [],
   "repository": {
     "type": "github",
-    "url": "https://github.com/tapirdata/hitson"
+    "url": "https://github.com/tapirdata/tson-addon"
   },
   "author": {
     "name": "Andreas Riedl",
