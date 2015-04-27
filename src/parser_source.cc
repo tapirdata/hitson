@@ -33,6 +33,17 @@ inline bool getDate(const std::string& s, v8::Local<v8::Value>& value) {
   return false;
 }
 
+inline bool getInteger(const std::string& s, int& value) {
+  const char* begin = s.data();
+  char* end;
+  int x = strtol(begin, &end, 10);
+  if (end == begin + s.size()) {
+    value = x;
+    return true;
+  }  
+  return false;
+}
+
 v8::Local<v8::String> ParserSource::getText() {
  int err = source.pullUnescapedBuffer();
  if (err) {
@@ -97,30 +108,48 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
   return value;
 }
 
-    /*
-      void makeError(TargetBuffer& msg) {
-      size_t errIdx = nextIdx;
-      uint16_t errChar = nextChar;
-      if (nextType == END) {
-        errChar = 0;
+v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
+  v8::Local<v8::Object> value = NanNew<v8::Object>();
+  bool refErr = false;
+  size_t refBeginIdx = source.nextIdx - 1;
+  if (source.nextType != TEXT) {
+    refErr = true;
+  } else { 
+    if (source.pullUnescapedString()) {
+      makeError();
+    } else {
+      int refIdx;
+      if (!getInteger(source.nextString, refIdx) || refIdx < 0) {
+        refErr = true;
       } else {
-        --errIdx;
+        ParseFrame *idxFrame = &frame;
+        while (refIdx > 0) {
+          idxFrame = idxFrame->parent;
+          if (!idxFrame) {
+            refErr = true;
+            break;
+          }
+          --refIdx;
+        }
+        if (idxFrame) {
+          value = idxFrame->value;
+        }  
       }
-      msg.append(std::string("Unexpected '"));
-      if (errChar) {
-        msg.push(nextChar);
-      }
-      msg.append(std::string("' at '"));
-      msg.append(getBuffer(), 0, errIdx);
-      msg.push('^');
-      msg.append(getBuffer(), errIdx);
-      msg.append(std::string("'"));
     }
-    */
+  }  
+  if (refErr) {
+    TargetBuffer msg;
+    msg.append(std::string("unexpected backref '"));
+    msg.append(source.nextString);
+    msg.append(std::string("'"));
+    makeError(refBeginIdx, &msg);
+  }
+  return value;
+}  
 
-
-v8::Local<v8::Array> ParserSource::getArray() {
+v8::Local<v8::Array> ParserSource::getArray(ParseFrame* parentFrame) {
   v8::Local<v8::Array> value = NanNew<v8::Array>();
+  ParseFrame frame(value, parentFrame);
   if (hasError) goto end;
   switch (source.nextType) {
     case ENDARRAY:
@@ -144,12 +173,17 @@ stageNext:
       goto stageHave;
     case ARRAY:
       next();
-      value->Set(value->Length(), getArray());
+      value->Set(value->Length(), getArray(&frame));
       if (hasError) goto end;
       goto stageHave;
     case OBJECT:
       next();
-      value->Set(value->Length(), getObject());
+      value->Set(value->Length(), getObject(&frame));
+      if (hasError) goto end;
+      goto stageHave;
+    case PIPE:
+      next();
+      value->Set(value->Length(), getBackreffed(frame));
       if (hasError) goto end;
       goto stageHave;
     default:
@@ -174,8 +208,8 @@ end:
   return value;
 }
 
-v8::Local<v8::Object> ParserSource::getObject() {
-  v8::Local<v8::Object> value = NanNew<v8::Object>();
+v8::Local<v8::Object> ParserSource::getObject(ParseFrame* parentFrame) {
+  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
   v8::Local<v8::String> key;
   if (hasError) goto end;
 
@@ -207,11 +241,11 @@ stageHaveKey:
   switch (source.nextType) {
     case ENDOBJECT:
       next();
-      value->Set(key, NanTrue());
+      frame.value->Set(key, NanTrue());
       break;
     case PIPE:
       next();
-      value->Set(key, NanTrue());
+      frame.value->Set(key, NanTrue());
       goto stageNext;
     case IS:
       next();
@@ -225,21 +259,26 @@ stageHaveColon:
   switch (source.nextType) {
     case TEXT:
     case QUOTE:
-      value->Set(key, getText());
+      frame.value->Set(key, getText());
       goto stageHaveValue;
     case LITERAL:
       next();
-      value->Set(key, getLiteral());
+      frame.value->Set(key, getLiteral());
       if (hasError) goto end;
       goto stageHaveValue;
     case ARRAY:
       next();
-      value->Set(key, getArray());
+      frame.value->Set(key, getArray(&frame));
       if (hasError) goto end;
       goto stageHaveValue;
     case OBJECT:
       next();
-      value->Set(key, getObject());
+      frame.value->Set(key, getObject(&frame));
+      if (hasError) goto end;
+      goto stageHaveValue;
+    case PIPE:
+      next();
+      frame.value->Set(key, getBackreffed(frame));
       if (hasError) goto end;
       goto stageHaveValue;
     default:
@@ -261,7 +300,7 @@ stageHaveValue:
   goto end;
 
 end:
-  return value;
+  return frame.value;
 }
 
 v8::Local<v8::Value> ParserSource::getValue() {
@@ -278,11 +317,11 @@ v8::Local<v8::Value> ParserSource::getValue() {
       break;
     case ARRAY:
       next();
-      value = getArray();
+      value = getArray(NULL);
       break;
     case OBJECT:
       next();
-      value = getObject();
+      value = getObject(NULL);
       break;
     default:
       makeError();

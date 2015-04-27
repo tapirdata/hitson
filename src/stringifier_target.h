@@ -3,6 +3,7 @@
 
 #include "target_buffer.h"
 #include <algorithm>
+#include <sstream>
 
 class StringifierTarget;
 
@@ -28,9 +29,11 @@ class StringifierTarget {
     StringifierTarget(): oaIdx_(0) {}
     inline void putText(v8::Local<v8::String>);
     inline void putText(const usc2vector& buffer, size_t start, size_t length);
+    inline bool putBackref(v8::Local<v8::Object> x);
     inline void putValue(v8::Local<v8::Value>);
     inline void clear() {
       target.clear();
+      haves.clear();
       oaIdx_ = 0;
     };
 
@@ -38,6 +41,8 @@ class StringifierTarget {
     // static inline void Sort(v8::Local<v8::Array>);
 
     TargetBuffer target;
+    typedef std::vector<v8::Local<v8::Value> > handleVector;
+    handleVector haves;
 
   private:
     enum {
@@ -78,6 +83,20 @@ void StringifierTarget::putText(const usc2vector& buffer, size_t start, size_t l
   }
 }
 
+bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
+  handleVector::const_iterator haveIt = std::find(haves.begin(), haves.end(), x);
+  if (haveIt == haves.end()) {
+    return false;
+  } else {
+    size_t idx = haves.end() - haveIt - 1;
+    std::stringstream idxBuf;
+    idxBuf << idx;
+    target.push('|');
+    target.append(idxBuf.str());
+    return true;
+  }
+}  
+
 void StringifierTarget::putValue(v8::Local<v8::Value> x) {
   if (x->IsString()) {
     putText(x.As<v8::String>());
@@ -102,6 +121,10 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
     target.push('d');
     target.appendHandle(NanNew<v8::Number>(x->NumberValue())->ToString());
   } else if (x->IsArray()) {
+    if (putBackref(x.As<v8::Object>())) {
+      return;
+    }
+    haves.push_back(x);
     v8::Local<v8::Array> array = x.As<v8::Array>();
     uint32_t len = array->Length();
     target.push('[');
@@ -112,12 +135,18 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       }
     }
     target.push(']');
+    haves.pop_back();
   } else if (x->IsObject()) {
+    if (putBackref(x.As<v8::Object>())) {
+      return;
+    }
+    haves.push_back(x);
     ObjectAdaptor *oa = getOa();
     oa->putObject(x.As<v8::Object>());
     oa->sort();
     oa->emit(*this);
     releaseOa(oa);
+    haves.pop_back();
   }
 }
 

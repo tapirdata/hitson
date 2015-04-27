@@ -5,6 +5,12 @@
 
 class Parser;
 
+struct ParseFrame {
+  v8::Local<v8::Object> value;
+  ParseFrame *parent;
+  inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p): value(v), parent(p) {}
+};  
+
 class ParserSource {
   public:
     friend class Parser;
@@ -16,8 +22,9 @@ class ParserSource {
     inline void next() { source.next(); }
     inline v8::Local<v8::String> getText();
     inline v8::Local<v8::Value> getLiteral();
-    inline v8::Local<v8::Array> getArray();
-    inline v8::Local<v8::Object> getObject();
+    inline v8::Local<v8::Object> getBackreffed(ParseFrame& frame);
+    inline v8::Local<v8::Array> getArray(ParseFrame* parentFrame);
+    inline v8::Local<v8::Object> getObject(ParseFrame* parentFrame);
     v8::Local<v8::Value> getValue();
     void makeError(int pos = -1, const BaseBuffer* cause=NULL);
   private:
