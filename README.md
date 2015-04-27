@@ -3,4 +3,4 @@
 
 ## Usage
 
-This package is inteded to be used as a companion to the the javascript wson package. See there for documentaion.
+This package is intended to be used as a companion to the javascript [wson](https://www.npmjs.com/package/wson) package. See there for documentation.
