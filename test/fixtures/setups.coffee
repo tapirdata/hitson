@@ -10,6 +10,8 @@ connectors =
   Point:
     name: 'Point'
     by: extdefs.Point
+    precreate: () -> Object.create extdefs.Point.prototype
+    postcreate: (obj, args) -> extdefs.Point.apply obj, args
     split: (p) -> p.__wsonsplit__()
   Polygon:
     name: 'Polygon'
