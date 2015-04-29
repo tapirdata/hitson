@@ -5,9 +5,10 @@
 #include <algorithm>
 #include <sstream>
 
+
 struct Connector {
-  v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function> > by;
-  v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function> > split;
+  PersistentFunction by;
+  PersistentFunction split;
   TargetBuffer name;
 };
 
@@ -163,7 +164,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       target.append(connector->name.getBuffer());
       const int argc = 1;
       v8::Local<v8::Value> argv[argc] = {x};
-      v8::Local<v8::Function> split = v8::Local<v8::Function>::New(v8::Isolate::GetCurrent(), connector->split);
+      v8::Local<v8::Function> split = UnwrapPersistent(connector->split);
       v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(), argc, argv);
       if (args->IsArray()) {
         v8::Local<v8::Array> argsArray = args.As<v8::Array>();

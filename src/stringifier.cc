@@ -23,16 +23,19 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
       Local<Function> by = con->Get(NanNew("by")).As<Function>();
       Local<Function> split = con->Get(NanNew("split")).As<Function>();
       Connector &connector = connectors_[i];
-      connector.by.Reset(v8::Isolate::GetCurrent(), by);
-      connector.split.Reset(v8::Isolate::GetCurrent(), split);
+      NanAssignPersistent(connector.by, by);
+      NanAssignPersistent(connector.split, split);
       connector.name.appendHandleEscaped(name);
     }
-    std::cout << "con.len=" << connectors_.size() << std::endl;
   }
 };
 
 Stringifier::~Stringifier() {
   NanDisposePersistent(errorClass_);
+  for (connectorVector::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
+    NanDisposePersistent(it->by);
+    NanDisposePersistent(it->split);
+  }
 };
 
 v8::Persistent<v8::Function> Stringifier::constructor;
