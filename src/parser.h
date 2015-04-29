@@ -12,7 +12,7 @@ class Parser: public node::ObjectWrap {
     v8::Local<v8::Object> createError(int argc, v8::Local<v8::Value> argv[]) const;
 
   private:
-    Parser(v8::Local<v8::Function>);
+    Parser(v8::Local<v8::Function>, v8::Local<v8::Object>);
     ~Parser();
 
     static v8::Persistent<v8::Function> constructor;

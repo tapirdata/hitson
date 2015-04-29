@@ -10,7 +10,7 @@ using v8::Function;
 using v8::FunctionTemplate;
 
 
-Parser::Parser(Local<Function> errorClass): ps_(*this) {
+Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object>): ps_(*this) {
   NanAssignPersistent(errorClass_, errorClass);
 };
 
@@ -24,18 +24,22 @@ NAN_METHOD(Parser::New) {
   NanScope();
   if (args.Length() < 1 || !(args[0]->IsFunction())) {
     return NanThrowTypeError("First argument should be an error constructor");
-  }  
+  }
+  if (args.Length() < 2 || !(args[0]->IsObject())) {
+    return NanThrowTypeError("Second argument should be an option object");
+  }
   Local<Function> errorClass = args[0].As<Function>();
+  Local<Object> options = args[1].As<Object>();
   if (args.IsConstructCall()) {
-    Parser* obj = new Parser(errorClass);
+    Parser* obj = new Parser(errorClass, options);
     obj->Wrap(args.This());
     NanReturnValue(args.This());
   } else {
-    const int argc = 1;
-    Local<Value> argv[argc] = {errorClass};
+    const int argc = 2;
+    Local<Value> argv[argc] = {errorClass, errorClass};
     Local<Function> cons = NanNew<Function>(constructor);
     NanReturnValue(cons->NewInstance(argc, argv));
-  }  
+  }
 }
 
 NAN_METHOD(Parser::Unescape) {
@@ -93,7 +97,7 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
 
 Local<Object> Parser::createError(int argc, Local<Value> *argv) const {
   return NanNew<v8::Function>(errorClass_)->NewInstance(argc, argv);
-}  
+}
 
 
 

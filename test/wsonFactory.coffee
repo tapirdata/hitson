@@ -13,10 +13,9 @@ class StringifierError extends Error
     @message = 'bad bad syntax'
 
 
-
 module.exports = (options) ->
-  stringifier = new wson.Stringifier StringifierError
-  parser = new wson.Parser ParseError
+  stringifier = new wson.Stringifier StringifierError, options
+  parser = new wson.Parser ParseError, options
   escape: (x) -> stringifier.escape x
   unescape: (x) -> parser.unescape x
   stringify: (x) -> stringifier.stringify x

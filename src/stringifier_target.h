@@ -5,6 +5,14 @@
 #include <algorithm>
 #include <sstream>
 
+struct Connector {
+  v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function> > by;
+  v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function> > split;
+  TargetBuffer name;
+};
+
+typedef std::vector<Connector> connectorVector;
+
 class StringifierTarget;
 
 class ObjectAdaptor {
@@ -24,13 +32,17 @@ class ObjectAdaptor {
     friend struct OaLess;
 }; 
 
+class Stringifier;
+
 class StringifierTarget {
   public:
-    StringifierTarget(): oaIdx_(0) {}
+    friend class Stringifier;
+    StringifierTarget(Stringifier& stringifier): stringifier_(stringifier), oaIdx_(0) {}
     inline void putText(v8::Local<v8::String>);
     inline void putText(const usc2vector& buffer, size_t start, size_t length);
     inline bool putBackref(v8::Local<v8::Object> x);
     inline void putValue(v8::Local<v8::Value>);
+    const Connector* getConnector(v8::Local<v8::Object> x);
     inline void clear() {
       target.clear();
       haves.clear();
@@ -45,6 +57,7 @@ class StringifierTarget {
     handleVector haves;
 
   private:
+    Stringifier& stringifier_;
     enum {
       STATIC_OA_NUM = 8
     };
@@ -137,15 +150,37 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
     target.push(']');
     haves.pop_back();
   } else if (x->IsObject()) {
-    if (putBackref(x.As<v8::Object>())) {
+    v8::Local<v8::Object> xObj = x.As<v8::Object>();
+    if (putBackref(xObj)) {
       return;
     }
     haves.push_back(x);
-    ObjectAdaptor *oa = getOa();
-    oa->putObject(x.As<v8::Object>());
-    oa->sort();
-    oa->emit(*this);
-    releaseOa(oa);
+
+    const Connector* connector = getConnector(xObj);
+    if (connector) {
+      target.push('[');
+      target.push(':');
+      target.append(connector->name.getBuffer());
+      const int argc = 1;
+      v8::Local<v8::Value> argv[argc] = {x};
+      v8::Local<v8::Function> split = v8::Local<v8::Function>::New(v8::Isolate::GetCurrent(), connector->split);
+      v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(), argc, argv);
+      if (args->IsArray()) {
+        v8::Local<v8::Array> argsArray = args.As<v8::Array>();
+        uint32_t len = argsArray->Length();
+        for (uint32_t i=0; i<len; ++i) {
+          target.push('|');
+          putValue(argsArray->Get(i));
+        }
+      }
+      target.push(']');
+    } else {
+      ObjectAdaptor *oa = getOa();
+      oa->putObject(xObj);
+      oa->sort();
+      oa->emit(*this);
+      releaseOa(oa);
+    }  
     haves.pop_back();
   }
 }
@@ -166,6 +201,7 @@ void ObjectAdaptor::putObject(v8::Local<v8::Object> obj) {
     keyBunch.appendHandle(key);
   }  
 } 
+
 struct OaLess {
   OaLess(const ObjectAdaptor& oa): oa_(oa) {}
   const ObjectAdaptor& oa_;

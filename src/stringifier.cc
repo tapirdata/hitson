@@ -9,8 +9,26 @@ using v8::Function;
 using v8::FunctionTemplate;
 
 
-Stringifier::Stringifier(Local<Function> errorClass) {
+Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> options): st_(*this) {
   NanAssignPersistent(errorClass_, errorClass);
+  Local<Value> connectors = options->Get(NanNew("connectors"));
+  if (connectors->IsObject()) {
+    Local<Object> cons = connectors.As<Object>();
+    v8::Local<v8::Array> names = cons->GetOwnPropertyNames();
+    uint32_t len = names->Length();
+    connectors_.resize(len);
+    for (uint32_t i=0; i<len; ++i) {
+      Local<String> name = names->Get(i).As<v8::String>();
+      Local<Object> con = cons->Get(name).As<Object>();
+      Local<Function> by = con->Get(NanNew("by")).As<Function>();
+      Local<Function> split = con->Get(NanNew("split")).As<Function>();
+      Connector &connector = connectors_[i];
+      connector.by.Reset(v8::Isolate::GetCurrent(), by);
+      connector.split.Reset(v8::Isolate::GetCurrent(), split);
+      connector.name.appendHandleEscaped(name);
+    }
+    std::cout << "con.len=" << connectors_.size() << std::endl;
+  }
 };
 
 Stringifier::~Stringifier() {
@@ -23,18 +41,22 @@ NAN_METHOD(Stringifier::New) {
   NanScope();
   if (args.Length() < 1 || !(args[0]->IsFunction())) {
     return NanThrowTypeError("First argument should be an error constructor");
-  }  
+  }
+  if (args.Length() < 2 || !(args[0]->IsObject())) {
+    return NanThrowTypeError("Second argument should be an option object");
+  }
   Local<Function> errorClass = args[0].As<Function>();
+  Local<Object> options = args[1].As<Object>();
   if (args.IsConstructCall()) {
-    Stringifier* obj = new Stringifier(errorClass);
+    Stringifier* obj = new Stringifier(errorClass, options);
     obj->Wrap(args.This());
     NanReturnValue(args.This());
   } else {
-    const int argc = 1;
-    Local<Value> argv[argc] = {errorClass};
+    const int argc = 2;
+    Local<Value> argv[argc] = {errorClass, options};
     Local<Function> cons = NanNew<Function>(constructor);
     NanReturnValue(cons->NewInstance(argc, argv));
-  }  
+  }
 }
 
 NAN_METHOD(Stringifier::Escape) {

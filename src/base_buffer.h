@@ -39,7 +39,7 @@ class BaseBuffer {
       return buffer_;
     }
 
-    size_t size() {
+    size_t size() const {
       return buffer_.size();
     }
 
