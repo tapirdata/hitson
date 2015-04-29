@@ -2,6 +2,7 @@
 #define WSON_PARSER_SOURCE_H_
 
 #include "source_buffer.h"
+#include <map>
 
 class Parser;
 
@@ -10,6 +11,15 @@ struct ParseFrame {
   ParseFrame *parent;
   inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p): value(v), parent(p) {}
 };  
+
+struct ParseConnector {
+  PersistentFunction precreate;
+  PersistentFunction postcreate;
+  PersistentFunction create;
+  // TargetBuffer name;
+};
+
+typedef std::map<usc2vector, ParseConnector> connectorMap;
 
 class ParserSource {
   public:
@@ -23,8 +33,9 @@ class ParserSource {
     inline v8::Local<v8::String> getText();
     inline v8::Local<v8::Value> getLiteral();
     inline v8::Local<v8::Object> getBackreffed(ParseFrame& frame);
-    inline v8::Local<v8::Array> getArray(ParseFrame* parentFrame);
+    inline v8::Local<v8::Object> getArray(ParseFrame* parentFrame);
     inline v8::Local<v8::Object> getObject(ParseFrame* parentFrame);
+    inline v8::Local<v8::Object> getCustom(ParseFrame* parentFrame);
     v8::Local<v8::Value> getValue();
     void makeError(int pos = -1, const BaseBuffer* cause=NULL);
   private:

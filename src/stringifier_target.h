@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <sstream>
 
-
 struct Connector {
   PersistentFunction by;
   PersistentFunction split;
@@ -165,15 +164,17 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       const int argc = 1;
       v8::Local<v8::Value> argv[argc] = {x};
       v8::Local<v8::Function> split = UnwrapPersistent(connector->split);
-      v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(), argc, argv);
-      if (args->IsArray()) {
-        v8::Local<v8::Array> argsArray = args.As<v8::Array>();
-        uint32_t len = argsArray->Length();
-        for (uint32_t i=0; i<len; ++i) {
-          target.push('|');
-          putValue(argsArray->Get(i));
+      if (!split.IsEmpty()) {
+        v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(), argc, argv);
+        if (args->IsArray()) {
+          v8::Local<v8::Array> argsArray = args.As<v8::Array>();
+          uint32_t len = argsArray->Length();
+          for (uint32_t i=0; i<len; ++i) {
+            target.push('|');
+            putValue(argsArray->Get(i));
+          }
         }
-      }
+      }  
       target.push(']');
     } else {
       ObjectAdaptor *oa = getOa();

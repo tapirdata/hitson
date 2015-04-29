@@ -147,7 +147,11 @@ v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
   return value;
 }  
 
-v8::Local<v8::Array> ParserSource::getArray(ParseFrame* parentFrame) {
+v8::Local<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
+  if (source.nextType == IS) {
+    return getCustom(parentFrame);
+  }
+
   v8::Local<v8::Array> value = NanNew<v8::Array>();
   ParseFrame frame(value, parentFrame);
   if (hasError) goto end;
@@ -302,6 +306,66 @@ stageHaveValue:
 end:
   return frame.value;
 }
+
+v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
+  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
+  v8::Local<v8::Array> args = NanNew<v8::Array>();
+  if (hasError) goto end;
+  switch (source.nextType) {
+    case TEXT:
+      next();
+      goto stageHave;
+    default:
+      makeError();
+  }
+  goto end;
+
+stageNext:
+  switch (source.nextType) {
+    case TEXT:
+    case QUOTE:
+      args->Set(args->Length(), getText());
+      goto stageHave;
+    case LITERAL:
+      next();
+      args->Set(args->Length(), getLiteral());
+      if (hasError) goto end;
+      goto stageHave;
+    case ARRAY:
+      next();
+      args->Set(args->Length(), getArray(&frame));
+      if (hasError) goto end;
+      goto stageHave;
+    case OBJECT:
+      next();
+      args->Set(args->Length(), getObject(&frame));
+      if (hasError) goto end;
+      goto stageHave;
+    case PIPE:
+      next();
+      args->Set(args->Length(), getBackreffed(frame));
+      if (hasError) goto end;
+      goto stageHave;
+    default:
+      makeError();
+  }
+
+stageHave:
+  switch (source.nextType) {
+    case ENDARRAY:
+      next();
+      break;
+    case PIPE:
+      next();
+      goto stageNext;
+    default:
+      makeError();
+  }
+  goto end;
+
+end:  
+  return frame.value;
+}  
 
 v8::Local<v8::Value> ParserSource::getValue() {
   v8::Local<v8::Value> value;
