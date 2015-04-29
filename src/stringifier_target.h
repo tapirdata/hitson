@@ -5,13 +5,13 @@
 #include <algorithm>
 #include <sstream>
 
-struct Connector {
+struct StringifyConnector {
   PersistentFunction by;
   PersistentFunction split;
   TargetBuffer name;
 };
 
-typedef std::vector<Connector> connectorVector;
+typedef std::vector<StringifyConnector> connectorVector;
 
 class StringifierTarget;
 
@@ -42,7 +42,7 @@ class StringifierTarget {
     inline void putText(const usc2vector& buffer, size_t start, size_t length);
     inline bool putBackref(v8::Local<v8::Object> x);
     inline void putValue(v8::Local<v8::Value>);
-    const Connector* getConnector(v8::Local<v8::Object> x);
+    const StringifyConnector* getConnector(v8::Local<v8::Object> x);
     inline void clear() {
       target.clear();
       haves.clear();
@@ -156,7 +156,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
     }
     haves.push_back(x);
 
-    const Connector* connector = getConnector(xObj);
+    const StringifyConnector* connector = getConnector(xObj);
     if (connector) {
       target.push('[');
       target.push(':');

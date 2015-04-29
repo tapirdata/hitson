@@ -10,8 +10,38 @@ using v8::Function;
 using v8::FunctionTemplate;
 
 
-Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object>): ps_(*this) {
+Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*this) {
   NanAssignPersistent(errorClass_, errorClass);
+  Local<Value> connectors = options->Get(NanNew("connectors"));
+  if (connectors->IsObject()) {
+    Local<Object> cons = connectors.As<Object>();
+    v8::Local<v8::Array> names = cons->GetOwnPropertyNames();
+    uint32_t len = names->Length();
+    // connectors_.resize(len);
+    for (uint32_t i=0; i<len; ++i) {
+      Local<String> name = names->Get(i).As<v8::String>();
+      Local<Object> con = cons->Get(name).As<Object>();
+      Local<Value> createVal = con->Get(NanNew("create"));
+      ParseConnector connector;
+      connector.vetoBackref = createVal->IsFunction();
+      if (connector.vetoBackref) {
+        NanAssignPersistent(connector.create,
+          con->Get(NanNew("create")).As<Function>()
+        );
+      } else {  
+        NanAssignPersistent(connector.precreate, 
+          con->Get(NanNew("precreate")).As<Function>()
+        );
+        NanAssignPersistent(connector.postcreate, 
+          con->Get(NanNew("postcreate")).As<Function>()
+        );
+      }  
+      // std::cout << i << " vetoBackref=" << connector.vetoBackref << std::endl;
+      connector.name.appendHandleEscaped(name);
+      connectors_[connector.name.getBuffer()] = connector;
+    }
+  }
+  // std::cout << "Parser connectors_.size()=" << connectors_.size() << std::endl;
 };
 
 Parser::~Parser() {

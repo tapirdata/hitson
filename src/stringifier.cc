@@ -20,7 +20,7 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
     for (uint32_t i=0; i<len; ++i) {
       Local<String> name = names->Get(i).As<v8::String>();
       Local<Object> con = cons->Get(name).As<Object>();
-      Connector &connector = connectors_[i];
+      StringifyConnector &connector = connectors_[i];
       NanAssignPersistent(connector.by,
         con->Get(NanNew("by")).As<Function>()
       );
@@ -30,7 +30,7 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
       connector.name.appendHandleEscaped(name);
     }
   }
-  std::cout << "Stringifier connectors_.size()=" << connectors_.size() << std::endl;
+  // std::cout << "Stringifier connectors_.size()=" << connectors_.size() << std::endl;
 };
 
 Stringifier::~Stringifier() {

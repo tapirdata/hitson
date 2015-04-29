@@ -9,14 +9,23 @@ class Parser;
 struct ParseFrame {
   v8::Local<v8::Object> value;
   ParseFrame *parent;
-  inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p): value(v), parent(p) {}
+  bool isBackreffed;
+  bool vetoBackref;
+  
+  inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p): 
+    value(v), 
+    parent(p),
+    isBackreffed(false),
+    vetoBackref(false)
+  {}
 };  
 
 struct ParseConnector {
   PersistentFunction precreate;
   PersistentFunction postcreate;
   PersistentFunction create;
-  // TargetBuffer name;
+  TargetBuffer name;
+  bool vetoBackref;
 };
 
 typedef std::map<usc2vector, ParseConnector> connectorMap;
