@@ -395,10 +395,6 @@ stageHave:
       {
         const ParseConnector& connector = connectorIt->second;
         if (connector.hasCreate) {
-          if (frame.isBackreffed) {
-            stolenBackref = true;
-            goto end;
-          }
           v8::Local<v8::Function> create = UnwrapPersistent(connector.create);
           const int argc = 1;
           v8::Local<v8::Value> argv[argc] = {args};
