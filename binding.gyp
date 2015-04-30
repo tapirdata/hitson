@@ -9,7 +9,8 @@
         "src/parser.cc",
         "src/wson.cc"
       ],
-      "include_dirs": [ "<!(node -e \"require('nan')\")" ]
+      "include_dirs": [ "<!(node -e \"require('nan')\")" ],
+      "cflags": []
     }
   ]
 }

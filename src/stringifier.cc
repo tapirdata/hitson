@@ -82,7 +82,7 @@ NAN_METHOD(Stringifier::Stringify) {
   StringifierTarget &st = self->st_;
   // st.target.reserve(128);
   st.clear();
-  st.putValue(args[0]);
+  st.put(args[0]);
   NanReturnValue(st.target.getHandle());
 }
 
