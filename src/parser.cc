@@ -21,25 +21,25 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*
     for (uint32_t i=0; i<len; ++i) {
       Local<String> name = names->Get(i).As<v8::String>();
       Local<Object> conDef = conDefs->Get(name).As<Object>();
-      ParseConnector connector;
-      NanAssignPersistent(connector.self, conDef);
+      ParseConnector *connector = new ParseConnector();
+      NanAssignPersistent(connector->self, conDef);
       Local<Value> hasCreateValue = conDef->Get(NanNew("hasCreate"));
-      connector.hasCreate = hasCreateValue->IsBoolean() && hasCreateValue->BooleanValue();
-      if (connector.hasCreate) {
-        NanAssignPersistent(connector.create,
+      connector->hasCreate = hasCreateValue->IsBoolean() && hasCreateValue->BooleanValue();
+      if (connector->hasCreate) {
+        NanAssignPersistent(connector->create,
           conDef->Get(NanNew("create")).As<Function>()
         );
       } else {
-        NanAssignPersistent(connector.precreate,
+        NanAssignPersistent(connector->precreate,
           conDef->Get(NanNew("precreate")).As<Function>()
         );
-        NanAssignPersistent(connector.postcreate,
+        NanAssignPersistent(connector->postcreate,
           conDef->Get(NanNew("postcreate")).As<Function>()
         );
       }
       // std::cout << i << " hasCreate=" << connector.hasCreate << std::endl;
-      connector.name.appendHandleEscaped(name);
-      connectors_[connector.name.getBuffer()] = connector;
+      connector->name.appendHandleEscaped(name);
+      connectors_[connector->name.getBuffer()] = connector;
     }
   }
   // std::cout << "Parser connectors_.size()=" << connectors_.size() << std::endl;
@@ -47,6 +47,9 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*
 
 Parser::~Parser() {
   NanDisposePersistent(errorClass_);
+  for (ParserSource::ConnectorMap::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
+    delete it->second;
+  }
   connectors_.clear();
 };
 

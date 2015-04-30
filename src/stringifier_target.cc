@@ -9,8 +9,8 @@ const StringifyConnector* StringifierTarget::getConnector(v8::Local<v8::Object> 
   v8::Local<v8::Value> constructor = x->Get(NanNew("constructor"));
   if (constructor->IsFunction()) {
     for (ConnectorVector::const_iterator it=stringifier_.connectors_.begin(); it != stringifier_.connectors_.end(); ++it) {
-      if (it->by == constructor) {
-        return &(*it);
+      if ((*it)->by == constructor) {
+        return (*it);
       }
     }
   }
@@ -99,9 +99,9 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       target.append(connector->name.getBuffer());
       const int argc = 1;
       v8::Local<v8::Value> argv[argc] = {x};
-      v8::Local<v8::Function> split = UnwrapPersistent(connector->split);
+      v8::Local<v8::Function> split = NanNew<v8::Function>(connector->split);
       if (!split.IsEmpty()) {
-        v8::Local<v8::Value> args = split->Call(UnwrapPersistent(connector->self), argc, argv);
+        v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(connector->self), argc, argv);
         if (!args.IsEmpty() && args->IsArray()) {
           v8::Local<v8::Array> argsArray = args.As<v8::Array>();
           uint32_t len = argsArray->Length();

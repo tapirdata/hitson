@@ -20,15 +20,16 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
     for (uint32_t i=0; i<len; ++i) {
       Local<String> name = names->Get(i).As<v8::String>();
       Local<Object> conDef = conDefs->Get(name).As<Object>();
-      StringifyConnector &connector = connectors_[i];
-      NanAssignPersistent(connector.self, conDef);
-      NanAssignPersistent(connector.by,
+      StringifyConnector* connector = new StringifyConnector();
+      NanAssignPersistent(connector->self, conDef);
+      NanAssignPersistent(connector->by,
         conDef->Get(NanNew("by")).As<Function>()
       );
-      NanAssignPersistent(connector.split,
+      NanAssignPersistent(connector->split,
         conDef->Get(NanNew("split")).As<Function>()
       );
-      connector.name.appendHandleEscaped(name);
+      connector->name.appendHandleEscaped(name);
+      connectors_[i] = connector;
     }
   }
   // std::cout << "Stringifier connectors_.size()=" << connectors_.size() << std::endl;
@@ -36,6 +37,9 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
 
 Stringifier::~Stringifier() {
   NanDisposePersistent(errorClass_);
+  for (StringifierTarget::ConnectorVector::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
+    delete (*it);
+  }
   connectors_.clear();
 };
 

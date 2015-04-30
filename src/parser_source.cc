@@ -340,15 +340,15 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
       }
       {
         // std::cout << "getCustom has connector" << std::endl;
-        const ParseConnector& connector = connectorIt->second;
+        const ParseConnector& connector = *(connectorIt->second);
         // std::cout << "hasCreate=" << connector.hasCreate << std::endl;
         if (connector.hasCreate) {
           frame.vetoBackref = true;
         } else {
-          v8::Local<v8::Function> precreate = UnwrapPersistent(connector.precreate);
+          v8::Local<v8::Function> precreate = NanNew<v8::Function>(connector.precreate);
           const int argc = 0;
           v8::Local<v8::Value> argv[argc] = {};
-          frame.value = precreate->Call(UnwrapPersistent(connector.self), argc, argv).As<v8::Object>();
+          frame.value = precreate->Call(NanNew<v8::Object>(connector.self), argc, argv).As<v8::Object>();
           // std::cout << "precreate" << std::endl;
         }
       }
@@ -393,18 +393,18 @@ stageHave:
     case ENDARRAY:
       next();
       {
-        const ParseConnector& connector = connectorIt->second;
+        const ParseConnector& connector = *(connectorIt->second);
         if (connector.hasCreate) {
-          v8::Local<v8::Function> create = UnwrapPersistent(connector.create);
+          v8::Local<v8::Function> create = NanNew<v8::Function>(connector.create);
           const int argc = 1;
           v8::Local<v8::Value> argv[argc] = {args};
-          frame.value = create->Call(UnwrapPersistent(connector.self), argc, argv).As<v8::Object>();
+          frame.value = create->Call(NanNew<v8::Object>(connector.self), argc, argv).As<v8::Object>();
           // std::cout << "create" << std::endl;
         } else {
-          v8::Local<v8::Function> postcreate = UnwrapPersistent(connector.postcreate);
+          v8::Local<v8::Function> postcreate = NanNew<v8::Function>(connector.postcreate);
           const int argc = 2;
           v8::Local<v8::Value> argv[argc] = {frame.value, args};
-          v8::Local<v8::Value> newValue = postcreate->Call(UnwrapPersistent(connector.self), argc, argv);
+          v8::Local<v8::Value> newValue = postcreate->Call(NanNew<v8::Object>(connector.self), argc, argv);
           if (newValue->IsObject()) {
             if (newValue != frame.value) {
               if (frame.isBackreffed) {

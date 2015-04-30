@@ -6,9 +6,9 @@
 #include <sstream>
 
 struct StringifyConnector {
-  PersistentObject self;
-  PersistentFunction by;
-  PersistentFunction split;
+  v8::Persistent<v8::Object> self;
+  v8::Persistent<v8::Function> by;
+  v8::Persistent<v8::Function> split;
   TargetBuffer name;
 
   ~StringifyConnector() {
@@ -42,7 +42,7 @@ class Stringifier;
 class StringifierTarget {
   public:
     friend class Stringifier;
-    typedef std::vector<StringifyConnector> ConnectorVector;
+    typedef std::vector<StringifyConnector*> ConnectorVector;
 
     StringifierTarget(Stringifier& stringifier): stringifier_(stringifier), oaIdx_(0) {}
     inline void putText(v8::Local<v8::String>);
