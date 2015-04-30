@@ -2,7 +2,7 @@
   "targets": [
     {
       "target_name": "wson_addon",
-      "sources": [ 
+      "sources": [
         "src/stringifier_target.cc",
         "src/stringifier.cc",
         "src/parser_source.cc",

@@ -29,14 +29,14 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*
         NanAssignPersistent(connector.create,
           conDef->Get(NanNew("create")).As<Function>()
         );
-      } else {  
-        NanAssignPersistent(connector.precreate, 
+      } else {
+        NanAssignPersistent(connector.precreate,
           conDef->Get(NanNew("precreate")).As<Function>()
         );
-        NanAssignPersistent(connector.postcreate, 
+        NanAssignPersistent(connector.postcreate,
           conDef->Get(NanNew("postcreate")).As<Function>()
         );
-      }  
+      }
       // std::cout << i << " hasCreate=" << connector.hasCreate << std::endl;
       connector.name.appendHandleEscaped(name);
       connectors_[connector.name.getBuffer()] = connector;
@@ -130,8 +130,5 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
 Local<Object> Parser::createError(int argc, Local<Value> *argv) const {
   return NanNew<v8::Function>(errorClass_)->NewInstance(argc, argv);
 }
-
-
-
 
 

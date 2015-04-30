@@ -25,7 +25,7 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
       NanAssignPersistent(connector.by,
         conDef->Get(NanNew("by")).As<Function>()
       );
-      NanAssignPersistent(connector.split, 
+      NanAssignPersistent(connector.split,
         conDef->Get(NanNew("split")).As<Function>()
       );
       connector.name.appendHandleEscaped(name);

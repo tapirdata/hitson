@@ -40,7 +40,7 @@ inline bool getInteger(const std::string& s, int& value) {
   if (end == begin + s.size()) {
     value = x;
     return true;
-  }  
+  }
   return false;
 }
 
@@ -49,9 +49,9 @@ v8::Local<v8::String> ParserSource::getText() {
  if (err) {
    makeError();
    return NanNew("");
- }  
+ }
  return source.nextBuffer.getHandle();
-}  
+}
 
 v8::Local<v8::Value> ParserSource::getLiteral() {
   v8::Local<v8::Value> value;
@@ -83,7 +83,7 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
         }
         if (!getDate(source.nextString, value)) {
           litErr = true;
-        }  
+        }
         break;
       default: {
         if (source.pullUnescapedString()) {
@@ -92,7 +92,7 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
         }
         if (!getNumber(source.nextString, value)) {
           litErr = true;
-        }  
+        }
       }
     }
     if (litErr) {
@@ -112,9 +112,10 @@ v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
   v8::Local<v8::Object> value = NanNew<v8::Object>();
   bool refErr = false;
   size_t refBeginIdx = source.nextIdx - 1;
-  if (source.nextType != TEXT) {
+  Ctype nextType = source.nextType;
+  if (nextType != TEXT) {
     refErr = true;
-  } else { 
+  } else {
     if (source.pullUnescapedString()) {
       makeError();
     } else {
@@ -132,21 +133,30 @@ v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
           --refIdx;
         }
         if (idxFrame) {
-          idxFrame->isBackreffed = true;
-          value = idxFrame->value;
-        }  
+          if (idxFrame->vetoBackref) {
+            refErr = true;
+          } else {
+            idxFrame->isBackreffed = true;
+            value = idxFrame->value;
+          }  
+        }
       }
     }
-  }  
+  }
   if (refErr) {
+    // std::cout << "getBackreffed refErr nextType=" << source.nextType << std::endl;
     TargetBuffer msg;
     msg.append(std::string("unexpected backref '"));
-    msg.append(source.nextString);
+    if (nextType == TEXT) {
+      msg.append(source.nextString);
+    } else {
+      msg.push(source.nextChar);
+    }
     msg.append(std::string("'"));
     makeError(refBeginIdx, &msg);
   }
   return value;
-}  
+}
 
 v8::Local<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
   if (source.nextType == IS) {
@@ -311,6 +321,7 @@ end:
 
 v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   // std::cout << "getCustom" << std::endl;
+  bool stolenBackref = false;
   ParseFrame frame(NanNew<v8::Object>(), parentFrame);
   v8::Local<v8::Array> args = NanNew<v8::Array>();
   ConnectorMap::const_iterator connectorIt;
@@ -326,7 +337,7 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
       if (connectorIt == parser_.connectors_.end()) {
         makeError();
         break;
-      } 
+      }
       {
         // std::cout << "getCustom has connector" << std::endl;
         const ParseConnector& connector = connectorIt->second;
@@ -340,7 +351,7 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
           frame.value = precreate->Call(UnwrapPersistent(connector.self), argc, argv).As<v8::Object>();
           // std::cout << "precreate" << std::endl;
         }
-      }  
+      }
       goto stageHave;
     default:
       makeError();
@@ -385,7 +396,7 @@ stageHave:
         const ParseConnector& connector = connectorIt->second;
         if (connector.hasCreate) {
           if (frame.isBackreffed) {
-            makeError();
+            stolenBackref = true;
             goto end;
           }
           v8::Local<v8::Function> create = UnwrapPersistent(connector.create);
@@ -393,14 +404,23 @@ stageHave:
           v8::Local<v8::Value> argv[argc] = {args};
           frame.value = create->Call(UnwrapPersistent(connector.self), argc, argv).As<v8::Object>();
           // std::cout << "create" << std::endl;
-        } else {  
+        } else {
           v8::Local<v8::Function> postcreate = UnwrapPersistent(connector.postcreate);
           const int argc = 2;
           v8::Local<v8::Value> argv[argc] = {frame.value, args};
-          postcreate->Call(UnwrapPersistent(connector.self), argc, argv);
+          v8::Local<v8::Value> newValue = postcreate->Call(UnwrapPersistent(connector.self), argc, argv);
+          if (newValue->IsObject()) {
+            if (newValue != frame.value) {
+              if (frame.isBackreffed) {
+                stolenBackref = true;
+                goto end;
+              }
+              frame.value = newValue.As<v8::Object>();
+            }
+          }
           // std::cout << "postcreate" << std::endl;
         }
-      }    
+      }
       break;
     case PIPE:
       next();
@@ -410,9 +430,17 @@ stageHave:
   }
   goto end;
 
-end:  
+end:
+  if (stolenBackref) {
+    TargetBuffer msg;
+    msg.append(std::string("backreffed value is replaced by postcreate"));
+    // msg.append(source.nextString);
+    // msg.append(std::string("'"));
+    // makeError(litBeginIdx, &msg);
+    makeError(-1, &msg);
+  }
   return frame.value;
-}  
+}
 
 v8::Local<v8::Value> ParserSource::getValue() {
   v8::Local<v8::Value> value;
@@ -437,13 +465,14 @@ v8::Local<v8::Value> ParserSource::getValue() {
     default:
       makeError();
   }
-  if (source.nextType != END) {
+  if (!hasError && source.nextType != END) {
     makeError();
   }
   return value;
 }
 
 void ParserSource::makeError(int pos, const BaseBuffer* cause) {
+  // std::cout << "makeError hasMsg=" << (cause != NULL) << std::endl;
   if (pos < 0) {
     pos = source.nextIdx;
     if (pos > 0)
@@ -453,11 +482,11 @@ void ParserSource::makeError(int pos, const BaseBuffer* cause) {
   v8::Local<v8::String> hCause;
   if (cause) {
     hCause = cause->getHandle();
-  } else {  
+  } else {
     hCause = NanNew("");
   }
   v8::Local<v8::Value> argv[argc] = {
-    source.getHandle(), 
+    source.getHandle(),
     NanNew<v8::Number>(pos),
     hCause
   };

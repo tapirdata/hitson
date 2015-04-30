@@ -1,12 +1,12 @@
 extdefs = require './extdefs'
 
-# connectors = 
+# connectors =
 #   Point:
 #     by: extdefs.Point
 #     create: ->
-#     split: ->  
+#     split: ->
 
-connectors = 
+connectors =
   Point:
     name: 'Point'
     by: extdefs.Point

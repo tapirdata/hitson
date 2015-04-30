@@ -15,7 +15,7 @@ struct StringifyConnector {
     NanDisposePersistent(self);
     NanDisposePersistent(by);
     NanDisposePersistent(split);
-  }  
+  }
 };
 
 class StringifierTarget;
@@ -35,7 +35,7 @@ class ObjectAdaptor {
     std::vector<Entry> entries;
     std::vector<size_t> entryIdxs;
     friend struct OaLess;
-}; 
+};
 
 class Stringifier;
 
@@ -77,15 +77,15 @@ class StringifierTarget {
       } else {
         oaIdx_++;
         return new ObjectAdaptor();
-      }  
-    } 
+      }
+    }
 
     void releaseOa(ObjectAdaptor* oa) {
       if (oaIdx_ > STATIC_OA_NUM) {
         delete oa;
-      }  
+      }
       --oaIdx_;
-    } 
+    }
 };
 
 void StringifierTarget::putText(v8::Local<v8::String> s) {
@@ -115,7 +115,7 @@ bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
     target.append(idxBuf.str());
     return true;
   }
-}  
+}
 
 void StringifierTarget::putValue(v8::Local<v8::Value> x) {
   if (x->IsString()) {
@@ -173,7 +173,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       v8::Local<v8::Function> split = UnwrapPersistent(connector->split);
       if (!split.IsEmpty()) {
         v8::Local<v8::Value> args = split->Call(UnwrapPersistent(connector->self), argc, argv);
-        if (args->IsArray()) {
+        if (!args.IsEmpty() && args->IsArray()) {
           v8::Local<v8::Array> argsArray = args.As<v8::Array>();
           uint32_t len = argsArray->Length();
           for (uint32_t i=0; i<len; ++i) {
@@ -181,7 +181,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
             putValue(argsArray->Get(i));
           }
         }
-      }  
+      }
       target.push(']');
     } else {
       ObjectAdaptor *oa = getOa();
@@ -189,7 +189,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       oa->sort();
       oa->emit(*this);
       releaseOa(oa);
-    }  
+    }
     haves.pop_back();
   }
 }
@@ -208,8 +208,8 @@ void ObjectAdaptor::putObject(v8::Local<v8::Object> obj) {
     entry.keyLength = key->Length();
     entry.value = obj->Get(key);
     keyBunch.appendHandle(key);
-  }  
-} 
+  }
+}
 
 struct OaLess {
   OaLess(const ObjectAdaptor& oa): oa_(oa) {}
@@ -252,7 +252,7 @@ void ObjectAdaptor::sort() {
     std::sort(entryIdxs.begin(), entryIdxs.end(), oaLess);
     // std::swap(entryIdxs[0], entryIdxs[1]);
   }
-}  
+}
 
 void ObjectAdaptor::emit(StringifierTarget& st) {
   // const uint16_t* keyData = keyBunch.getBuffer().data();
@@ -270,7 +270,7 @@ void ObjectAdaptor::emit(StringifierTarget& st) {
     if (i + 1 != len) {
       st.target.push('|');
     }
-  }  
+  }
   st.target.push('}');
 }
 

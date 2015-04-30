@@ -11,14 +11,14 @@ struct ParseFrame {
   ParseFrame *parent;
   bool isBackreffed;
   bool vetoBackref;
-  
-  inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p): 
-    value(v), 
+
+  inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p):
+    value(v),
     parent(p),
     isBackreffed(false),
     vetoBackref(false)
   {}
-};  
+};
 
 struct ParseConnector {
   PersistentObject self;
@@ -44,8 +44,8 @@ class ParserSource {
 
     ParserSource(Parser& parser): parser_(parser) {}
     void init(v8::Local<v8::String> s) {
-      hasError=false; 
-      source.init(s); 
+      hasError=false;
+      source.init(s);
     }
     inline void next() { source.next(); }
     inline v8::Local<v8::String> getText();

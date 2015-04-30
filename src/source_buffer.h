@@ -52,7 +52,7 @@ class SourceBuffer: public BaseBuffer {
           if (!nextChar) {
             return SYNTAX_ERROR;
           }
-        }  
+        }
         target.push(nextChar);
         next();
         if (nextType != TEXT && nextType != QUOTE) {
@@ -73,7 +73,7 @@ class SourceBuffer: public BaseBuffer {
           if (!nextChar) {
             return SYNTAX_ERROR;
           }
-        }  
+        }
         target.push_back(nextChar);
         next();
         if (nextType != TEXT && nextType != QUOTE) {
@@ -102,7 +102,7 @@ class SourceBuffer: public BaseBuffer {
       clear();
       appendHandle(s);
       next();
-    }  
+    }
 
     size_t nextIdx;
     uint16_t nextChar;

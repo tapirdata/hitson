@@ -4,7 +4,7 @@
 #include "parser_source.h"
 
 class Parser: public node::ObjectWrap {
-  
+
   friend class ParserSource;
 
   public:

@@ -50,7 +50,7 @@ class TargetBuffer: public BaseBuffer {
           xc = *sourcePick++;
           uint16_t c = getUnescapeChar(xc);
           if (!c) {
-            return sourcePick - sourceBegin - 1; 
+            return sourcePick - sourceBegin - 1;
           }
           push (c);
         } else {
@@ -122,7 +122,7 @@ class TargetBuffer: public BaseBuffer {
           xc = *replFrom++;
           uint16_t c = getUnescapeChar(xc);
           if (!c) {
-            return replFrom - putBegin - 1; 
+            return replFrom - putBegin - 1;
           }
           *replTo++ = c;
         } else {
