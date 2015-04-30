@@ -11,21 +11,22 @@ using v8::FunctionTemplate;
 
 Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> options): st_(*this) {
   NanAssignPersistent(errorClass_, errorClass);
-  Local<Value> connectors = options->Get(NanNew("connectors"));
-  if (connectors->IsObject()) {
-    Local<Object> cons = connectors.As<Object>();
-    v8::Local<v8::Array> names = cons->GetOwnPropertyNames();
+  Local<Value> conDefsValue = options->Get(NanNew("connectors"));
+  if (conDefsValue->IsObject()) {
+    Local<Object> conDefs = conDefsValue.As<Object>();
+    v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames();
     uint32_t len = names->Length();
     connectors_.resize(len);
     for (uint32_t i=0; i<len; ++i) {
       Local<String> name = names->Get(i).As<v8::String>();
-      Local<Object> con = cons->Get(name).As<Object>();
+      Local<Object> conDef = conDefs->Get(name).As<Object>();
       StringifyConnector &connector = connectors_[i];
+      NanAssignPersistent(connector.self, conDef);
       NanAssignPersistent(connector.by,
-        con->Get(NanNew("by")).As<Function>()
+        conDef->Get(NanNew("by")).As<Function>()
       );
       NanAssignPersistent(connector.split, 
-        con->Get(NanNew("split")).As<Function>()
+        conDef->Get(NanNew("split")).As<Function>()
       );
       connector.name.appendHandleEscaped(name);
     }
@@ -35,10 +36,7 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
 
 Stringifier::~Stringifier() {
   NanDisposePersistent(errorClass_);
-  for (connectorVector::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
-    NanDisposePersistent(it->by);
-    NanDisposePersistent(it->split);
-  }
+  connectors_.clear();
 };
 
 v8::Persistent<v8::Function> Stringifier::constructor;

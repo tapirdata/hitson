@@ -21,7 +21,7 @@ class Parser: public node::ObjectWrap {
     static NAN_METHOD(Parse);
 
     v8::Persistent<v8::Function> errorClass_;
-    connectorMap connectors_;
+    ParserSource::ConnectorMap connectors_;
     ParserSource ps_;
 };
 

@@ -6,12 +6,17 @@
 #include <sstream>
 
 struct StringifyConnector {
+  PersistentObject self;
   PersistentFunction by;
   PersistentFunction split;
   TargetBuffer name;
-};
 
-typedef std::vector<StringifyConnector> connectorVector;
+  ~StringifyConnector() {
+    NanDisposePersistent(self);
+    NanDisposePersistent(by);
+    NanDisposePersistent(split);
+  }  
+};
 
 class StringifierTarget;
 
@@ -37,6 +42,8 @@ class Stringifier;
 class StringifierTarget {
   public:
     friend class Stringifier;
+    typedef std::vector<StringifyConnector> ConnectorVector;
+
     StringifierTarget(Stringifier& stringifier): stringifier_(stringifier), oaIdx_(0) {}
     inline void putText(v8::Local<v8::String>);
     inline void putText(const usc2vector& buffer, size_t start, size_t length);
@@ -165,7 +172,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       v8::Local<v8::Value> argv[argc] = {x};
       v8::Local<v8::Function> split = UnwrapPersistent(connector->split);
       if (!split.IsEmpty()) {
-        v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(), argc, argv);
+        v8::Local<v8::Value> args = split->Call(UnwrapPersistent(connector->self), argc, argv);
         if (args->IsArray()) {
           v8::Local<v8::Array> argsArray = args.As<v8::Array>();
           uint32_t len = argsArray->Length();

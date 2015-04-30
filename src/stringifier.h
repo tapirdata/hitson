@@ -18,7 +18,7 @@ class Stringifier: public node::ObjectWrap {
     static NAN_METHOD(Stringify);
 
     v8::Persistent<v8::Function> errorClass_;
-    connectorVector connectors_;
+    StringifierTarget::ConnectorVector connectors_;
     StringifierTarget st_;
 };
 

@@ -17,6 +17,7 @@ connectors =
     name: 'Polygon'
     by: extdefs.Polygon
     create: (points) -> new extdefs.Polygon points
+    hasCreate: true
     split: (p) -> p.points
 
 module.exports = [

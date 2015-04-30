@@ -8,8 +8,7 @@ void StringifierTarget::Init() {
 const StringifyConnector* StringifierTarget::getConnector(v8::Local<v8::Object> x) {
   v8::Local<v8::Value> constructor = x->Get(NanNew("constructor"));
   if (constructor->IsFunction()) {
-    // std::cout << "hasConstructor" << std::endl;
-    for (connectorVector::const_iterator it=stringifier_.connectors_.begin(); it != stringifier_.connectors_.end(); ++it) {
+    for (ConnectorVector::const_iterator it=stringifier_.connectors_.begin(); it != stringifier_.connectors_.end(); ++it) {
       if (it->by == constructor) {
         return &(*it);
       }

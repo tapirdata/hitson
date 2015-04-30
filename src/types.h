@@ -37,20 +37,24 @@ template<typename T> NAN_INLINE void NanDisposePersistent(
     handle.Reset();
 }
 
-typedef v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function> > PersistentFunction;
-
-NAN_INLINE v8::Local<v8::Function> UnwrapPersistent(PersistentFunction fn) {
-  return v8::Local<v8::Function>::New(v8::Isolate::GetCurrent(), fn);
+template<typename T>
+NAN_INLINE v8::Local<T> UnwrapPersistent(v8::Persistent<T, v8::CopyablePersistentTraits<T> > handle) {
+  return v8::Local<T>::New(v8::Isolate::GetCurrent(), handle);
 }
+
+typedef v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function> > PersistentFunction;
+typedef v8::Persistent<v8::Object, v8::CopyablePersistentTraits<v8::Object> > PersistentObject;
 
 #else
 
-typedef v8::Persistent<v8::Function> PersistentFunction;
 
-NAN_INLINE v8::Local<v8::Function> UnwrapPersistent(PersistentFunction fn) {
-  return NanNew<v8::Function>(fn);
+template<typename T>
+NAN_INLINE v8::Local<T> UnwrapPersistent(v8::Persistent<T> handle) {
+  return NanNew<T>(handle);
 }
 
+typedef v8::Persistent<v8::Function> PersistentFunction;
+typedef v8::Persistent<v8::Object> PersistentObject;
 
 #endif
 
