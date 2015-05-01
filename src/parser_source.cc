@@ -325,6 +325,7 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   ParseFrame frame(NanNew<v8::Object>(), parentFrame);
   v8::Local<v8::Array> args = NanNew<v8::Array>();
   const Parser::ParseConnector* connector(NULL);
+  size_t nameIdx = source.nextIdx - 1; // for error
   if (hasError) goto end;
   switch (source.nextType) {
     case TEXT:
@@ -335,7 +336,11 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
       }
       connector = parser_.getConnector(source.nextBuffer.getBuffer());
       if (!connector) {
-        makeError();
+        TargetBuffer msg;
+        msg.append(std::string("no connector for '"));
+        msg.append(source.nextBuffer.getBuffer());
+        msg.append(std::string("'"));
+        makeError(nameIdx, &msg);
         break;
       }
       {
