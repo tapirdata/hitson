@@ -37,7 +37,7 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
 
 Stringifier::~Stringifier() {
   NanDisposePersistent(errorClass_);
-  for (StringifierTarget::ConnectorVector::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
+  for (ConnectorVector::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
     delete (*it);
   }
   connectors_.clear();

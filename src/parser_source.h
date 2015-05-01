@@ -21,27 +21,9 @@ struct ParseFrame {
   {}
 };
 
-struct ParseConnector {
-  v8::Persistent<v8::Object> self;
-  v8::Persistent<v8::Function> create;
-  v8::Persistent<v8::Function> precreate;
-  v8::Persistent<v8::Function> postcreate;
-  TargetBuffer name;
-  bool hasCreate;
-
-  ~ParseConnector() {
-    NanDisposePersistent(self);
-    NanDisposePersistent(create);
-    NanDisposePersistent(precreate);
-    NanDisposePersistent(postcreate);
-  }
-
-};
-
 class ParserSource {
   public:
     friend class Parser;
-    typedef std::map<usc2vector, ParseConnector* > ConnectorMap;
 
     ParserSource(Parser& parser): parser_(parser) {}
     void init(v8::Local<v8::String> s) {

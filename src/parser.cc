@@ -47,7 +47,7 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*
 
 Parser::~Parser() {
   NanDisposePersistent(errorClass_);
-  for (ParserSource::ConnectorMap::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
+  for (ConnectorMap::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
     delete it->second;
   }
   connectors_.clear();

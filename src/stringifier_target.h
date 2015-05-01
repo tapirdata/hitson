@@ -5,19 +5,6 @@
 #include <algorithm>
 #include <sstream>
 
-struct StringifyConnector {
-  v8::Persistent<v8::Object> self;
-  v8::Persistent<v8::Function> by;
-  v8::Persistent<v8::Function> split;
-  TargetBuffer name;
-
-  ~StringifyConnector() {
-    NanDisposePersistent(self);
-    NanDisposePersistent(by);
-    NanDisposePersistent(split);
-  }
-};
-
 class StringifierTarget;
 
 class ObjectAdaptor {
@@ -42,14 +29,12 @@ class Stringifier;
 class StringifierTarget {
   public:
     friend class Stringifier;
-    typedef std::vector<StringifyConnector*> ConnectorVector;
 
     StringifierTarget(Stringifier& stringifier): stringifier_(stringifier), oaIdx_(0) {}
     inline void putText(v8::Local<v8::String>);
     inline void putText(const usc2vector& buffer, size_t start, size_t length);
     inline bool putBackref(v8::Local<v8::Object> x);
     inline void putValue(v8::Local<v8::Value>);
-    inline const StringifyConnector* getConnector(v8::Local<v8::Object> x);
 
     inline void clear() {
       target.clear();
@@ -59,10 +44,10 @@ class StringifierTarget {
     void put(v8::Local<v8::Value>);
 
     static void Init();
-    // static inline void Sort(v8::Local<v8::Array>);
+
+    typedef std::vector<v8::Local<v8::Value> > handleVector;
 
     TargetBuffer target;
-    typedef std::vector<v8::Local<v8::Value> > handleVector;
     handleVector haves;
 
   private:

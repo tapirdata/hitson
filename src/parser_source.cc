@@ -324,7 +324,7 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   bool stolenBackref = false;
   ParseFrame frame(NanNew<v8::Object>(), parentFrame);
   v8::Local<v8::Array> args = NanNew<v8::Array>();
-  ConnectorMap::const_iterator connectorIt;
+  const Parser::ParseConnector* connector(NULL);
   if (hasError) goto end;
   switch (source.nextType) {
     case TEXT:
@@ -333,22 +333,19 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
         makeError();
         break;
       }
-      connectorIt = parser_.connectors_.find(source.nextBuffer.getBuffer());
-      if (connectorIt == parser_.connectors_.end()) {
+      connector = parser_.getConnector(source.nextBuffer.getBuffer());
+      if (!connector) {
         makeError();
         break;
       }
       {
-        // std::cout << "getCustom has connector" << std::endl;
-        const ParseConnector& connector = *(connectorIt->second);
-        // std::cout << "hasCreate=" << connector.hasCreate << std::endl;
-        if (connector.hasCreate) {
+        if (connector->hasCreate) {
           frame.vetoBackref = true;
         } else {
-          v8::Local<v8::Function> precreate = NanNew<v8::Function>(connector.precreate);
+          v8::Local<v8::Function> precreate = NanNew<v8::Function>(connector->precreate);
           const int argc = 0;
           v8::Local<v8::Value> argv[argc] = {};
-          frame.value = precreate->Call(NanNew<v8::Object>(connector.self), argc, argv).As<v8::Object>();
+          frame.value = precreate->Call(NanNew<v8::Object>(connector->self), argc, argv).As<v8::Object>();
           // std::cout << "precreate" << std::endl;
         }
       }
@@ -393,18 +390,17 @@ stageHave:
     case ENDARRAY:
       next();
       {
-        const ParseConnector& connector = *(connectorIt->second);
-        if (connector.hasCreate) {
-          v8::Local<v8::Function> create = NanNew<v8::Function>(connector.create);
+        if (connector->hasCreate) {
+          v8::Local<v8::Function> create = NanNew<v8::Function>(connector->create);
           const int argc = 1;
           v8::Local<v8::Value> argv[argc] = {args};
-          frame.value = create->Call(NanNew<v8::Object>(connector.self), argc, argv).As<v8::Object>();
+          frame.value = create->Call(NanNew<v8::Object>(connector->self), argc, argv).As<v8::Object>();
           // std::cout << "create" << std::endl;
         } else {
-          v8::Local<v8::Function> postcreate = NanNew<v8::Function>(connector.postcreate);
+          v8::Local<v8::Function> postcreate = NanNew<v8::Function>(connector->postcreate);
           const int argc = 2;
           v8::Local<v8::Value> argv[argc] = {frame.value, args};
-          v8::Local<v8::Value> newValue = postcreate->Call(NanNew<v8::Object>(connector.self), argc, argv);
+          v8::Local<v8::Value> newValue = postcreate->Call(NanNew<v8::Object>(connector->self), argc, argv);
           if (newValue->IsObject()) {
             if (newValue != frame.value) {
               if (frame.isBackreffed) {
