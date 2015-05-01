@@ -28,6 +28,10 @@ class Stringifier: public node::ObjectWrap {
     inline const StringifyConnector* getConnector(v8::Local<v8::Object>) const;
 
     static v8::Persistent<v8::Function> constructor;
+    static v8::Persistent<v8::String> sBy;
+    static v8::Persistent<v8::String> sSplit;
+    static v8::Persistent<v8::String> sConstructor;
+
     static NAN_METHOD(New);
     static NAN_METHOD(Escape);
     static NAN_METHOD(Stringify);
@@ -40,7 +44,7 @@ class Stringifier: public node::ObjectWrap {
 };
 
 const Stringifier::StringifyConnector* Stringifier::getConnector(v8::Local<v8::Object> x) const {
-  v8::Local<v8::Value> constructor = x->Get(NanNew("constructor"));
+  v8::Local<v8::Value> constructor = x->Get(NanNew(sConstructor));
   if (constructor->IsFunction()) {
     for (ConnectorVector::const_iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
       if ((*it)->by == constructor) {

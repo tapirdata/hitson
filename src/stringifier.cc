@@ -23,10 +23,10 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
       StringifyConnector* connector = new StringifyConnector();
       NanAssignPersistent(connector->self, conDef);
       NanAssignPersistent(connector->by,
-        conDef->Get(NanNew("by")).As<Function>()
+        conDef->Get(NanNew(sBy)).As<Function>()
       );
       NanAssignPersistent(connector->split,
-        conDef->Get(NanNew("split")).As<Function>()
+        conDef->Get(NanNew(sSplit)).As<Function>()
       );
       connector->name.appendHandleEscaped(name);
       connectors_[i] = connector;
@@ -44,6 +44,9 @@ Stringifier::~Stringifier() {
 };
 
 v8::Persistent<v8::Function> Stringifier::constructor;
+v8::Persistent<v8::String> Stringifier::sBy;
+v8::Persistent<v8::String> Stringifier::sSplit;
+v8::Persistent<v8::String> Stringifier::sConstructor;
 
 NAN_METHOD(Stringifier::New) {
   NanScope();
@@ -101,6 +104,10 @@ void Stringifier::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(newTpl, "stringify", Stringify);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
+  NanAssignPersistent(sBy, NanNew("by"));
+  NanAssignPersistent(sSplit, NanNew("split"));
+  NanAssignPersistent(sConstructor, NanNew("constructor"));
+
   exports->Set(NanNew("Stringifier"), newTpl->GetFunction());
 
   StringifierTarget::Init();

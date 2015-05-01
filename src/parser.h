@@ -34,6 +34,10 @@ class Parser: public node::ObjectWrap {
     inline const ParseConnector* getConnector(const usc2vector&) const;
 
     static v8::Persistent<v8::Function> constructor;
+    static v8::Persistent<v8::String> sEmpty;
+    static v8::Persistent<v8::String> sCreate;
+    static v8::Persistent<v8::String> sPrecreate;
+    static v8::Persistent<v8::String> sPostcreate;
     static NAN_METHOD(New);
     static NAN_METHOD(Unescape);
     static NAN_METHOD(Parse);

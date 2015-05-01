@@ -27,14 +27,14 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*
       connector->hasCreate = hasCreateValue->IsBoolean() && hasCreateValue->BooleanValue();
       if (connector->hasCreate) {
         NanAssignPersistent(connector->create,
-          conDef->Get(NanNew("create")).As<Function>()
+          conDef->Get(NanNew(sCreate)).As<Function>()
         );
       } else {
         NanAssignPersistent(connector->precreate,
-          conDef->Get(NanNew("precreate")).As<Function>()
+          conDef->Get(NanNew(sPrecreate)).As<Function>()
         );
         NanAssignPersistent(connector->postcreate,
-          conDef->Get(NanNew("postcreate")).As<Function>()
+          conDef->Get(NanNew(sPostcreate)).As<Function>()
         );
       }
       // std::cout << i << " hasCreate=" << connector.hasCreate << std::endl;
@@ -54,6 +54,10 @@ Parser::~Parser() {
 };
 
 Persistent<Function> Parser::constructor;
+Persistent<String> Parser::sEmpty;
+Persistent<String> Parser::sCreate;
+Persistent<String> Parser::sPrecreate;
+Persistent<String> Parser::sPostcreate;
 
 NAN_METHOD(Parser::New) {
   NanScope();
@@ -126,6 +130,11 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(newTpl, "parse", Parse);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
+  NanAssignPersistent(sEmpty, NanNew(""));
+  NanAssignPersistent(sCreate, NanNew("create"));
+  NanAssignPersistent(sPrecreate, NanNew("precreate"));
+  NanAssignPersistent(sPostcreate, NanNew("postcreate"));
+
   exports->Set(NanNew("Parser"), newTpl->GetFunction());
 }
 

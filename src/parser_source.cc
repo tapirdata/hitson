@@ -48,7 +48,7 @@ v8::Local<v8::String> ParserSource::getText() {
  int err = source.pullUnescapedBuffer();
  if (err) {
    makeError();
-   return NanNew("");
+   return NanNew(Parser::sEmpty);
  }
  return source.nextBuffer.getHandle();
 }
@@ -103,7 +103,7 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
       makeError(litBeginIdx, &msg);
     }
   } else {
-    value = NanNew<v8::String>();
+    value = NanNew(Parser::sEmpty);
   }
   return value;
 }
@@ -480,7 +480,7 @@ void ParserSource::makeError(int pos, const BaseBuffer* cause) {
   if (cause) {
     hCause = cause->getHandle();
   } else {
-    hCause = NanNew("");
+    hCause = NanNew(Parser::sEmpty);
   }
   v8::Local<v8::Value> argv[argc] = {
     source.getHandle(),
