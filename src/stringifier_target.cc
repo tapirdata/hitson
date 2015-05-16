@@ -124,11 +124,12 @@ void ObjectAdaptor::putObject(v8::Local<v8::Object> obj) {
   for (uint32_t i=0; i<len; ++i) {
     entryIdxs[i] = i;
     Entry& entry = entries[i];
-    v8::Local<v8::String> key = keys->Get(i).As<v8::String>();
+    v8::Local<v8::Value> key = keys->Get(i);
+    v8::Local<v8::String> skey = key->IsString() ? key.As<v8::String>() : key->ToString();
     entry.keyBeginIdx = keyBunch.size();
-    entry.keyLength = key->Length();
+    entry.keyLength = skey->Length();
     entry.value = obj->Get(key);
-    keyBunch.appendHandle(key);
+    keyBunch.appendHandle(skey);
   }
 }
 
