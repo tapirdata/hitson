@@ -16,7 +16,8 @@ class StringifierError extends Error
 module.exports = (options) ->
   stringifier = new wson.Stringifier StringifierError, options
   parser = new wson.Parser ParseError, options
-  escape: (x) -> stringifier.escape x
-  unescape: (x) -> parser.unescape x
+  escape: (s) -> stringifier.escape s
+  unescape: (s) -> parser.unescape s
   stringify: (x) -> stringifier.stringify x
-  parse: (x) -> parser.parse x
+  parse: (s) -> parser.parse s
+  parsePartial: (s, cb) -> parser.parsePartial s, cb

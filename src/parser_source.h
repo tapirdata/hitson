@@ -31,13 +31,14 @@ class ParserSource {
       source.init(s);
     }
     inline void next() { source.next(); }
+    inline bool isEnd() { return source.nextType == END; }
     inline v8::Local<v8::String> getText();
     inline v8::Local<v8::Value> getLiteral();
     inline v8::Local<v8::Object> getBackreffed(ParseFrame& frame);
     inline v8::Local<v8::Object> getArray(ParseFrame* parentFrame);
     inline v8::Local<v8::Object> getObject(ParseFrame* parentFrame);
     inline v8::Local<v8::Object> getCustom(ParseFrame* parentFrame);
-    v8::Local<v8::Value> getValue();
+    v8::Local<v8::Value> getValue(bool* isValue);
     void makeError(int pos = -1, const BaseBuffer* cause=NULL);
   private:
     Parser& parser_;

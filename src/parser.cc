@@ -110,12 +110,53 @@ NAN_METHOD(Parser::Parse) {
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
   ParserSource &ps = self->ps_;
   ps.init(s);
-  Local<Value> result = ps.getValue();
+  Local<Value> result = ps.getValue(NULL);
   if (ps.hasError) {
     return NanThrowError(ps.error);
   }
   NanReturnValue(result);
 
+}
+
+NAN_METHOD(Parser::ParsePartial) {
+  NanScope();
+  if (args.Length() < 1 || !(args[0]->IsString())) {
+    return NanThrowTypeError("First argument should be a string");
+  }
+  Local<String> s = args[0].As<String>();
+
+  if (args.Length() < 2 || !(args[1]->IsFunction())) {
+    return NanThrowTypeError("Second argument should be a function");
+  }
+  Local<Function> cbHandle = args[1].As<Function>();
+  NanCallback *cb = new NanCallback(cbHandle);
+
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
+  ParserSource &ps = self->ps_;
+  ps.init(s);
+  while (!ps.isEnd()) {
+    bool isValue = true;
+    Local<Value> result = ps.getValue(&isValue);
+    if (ps.hasError) {
+      break;
+    }
+    v8::Handle<Value> cbArgv[] = {
+      NanNew(isValue),
+      result
+    };
+    cb->Call(2, cbArgv);
+  }
+  if (!ps.hasError) {
+    v8::Handle<Value> cbArgv[] = {
+      NanFalse(),
+      NanNull()
+    };
+    cb->Call(2, cbArgv);
+  }  
+  delete cb;
+  if (ps.hasError) {
+    return NanThrowError(ps.error);
+  }
 }
 
 
@@ -128,6 +169,7 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
 
   NODE_SET_PROTOTYPE_METHOD(newTpl, "unescape", Unescape);
   NODE_SET_PROTOTYPE_METHOD(newTpl, "parse", Parse);
+  NODE_SET_PROTOTYPE_METHOD(newTpl, "parsePartial", ParsePartial);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
   NanAssignPersistent(sEmpty, NanNew(""));

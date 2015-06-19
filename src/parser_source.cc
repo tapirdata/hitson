@@ -439,7 +439,7 @@ end:
   return frame.value;
 }
 
-v8::Local<v8::Value> ParserSource::getValue() {
+v8::Local<v8::Value> ParserSource::getValue(bool* isValue) {
   v8::Local<v8::Value> value;
   if (hasError) return value;
   switch (source.nextType) {
@@ -460,9 +460,15 @@ v8::Local<v8::Value> ParserSource::getValue() {
       value = getObject(NULL);
       break;
     default:
-      makeError();
+      if (isValue) {
+        *isValue = false;
+        value = NanNew<v8::String>(&source.nextChar, 1);
+        next();
+      } else {
+        makeError();
+      }
   }
-  if (!hasError && source.nextType != END) {
+  if (!isValue && !hasError && !isEnd()) {
     makeError();
   }
   return value;
