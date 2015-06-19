@@ -157,6 +157,7 @@ NAN_METHOD(Parser::ParsePartial) {
   if (ps.hasError) {
     return NanThrowError(ps.error);
   }
+  return NanUndefined();
 }
 
 
