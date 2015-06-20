@@ -134,30 +134,43 @@ NAN_METHOD(Parser::ParsePartial) {
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
   ParserSource &ps = self->ps_;
   ps.init(s);
+  bool reqAbort = false;
+  Local<Value> error;
+  v8::Handle<Value> cbResult;
   while (!ps.isEnd()) {
     bool isValue = true;
     Local<Value> result = ps.getValue(&isValue);
     if (ps.hasError) {
+      error = ps.error;
+      reqAbort = true;
       break;
     }
     v8::Handle<Value> cbArgv[] = {
       NanNew(isValue),
       result
     };
-    cb->Call(2, cbArgv);
+    cbResult = cb->Call(2, cbArgv);
+    if (cbResult->IsFalse()) {
+      reqAbort = true;
+      break;
+    }
   }
-  if (!ps.hasError) {
+  if (!reqAbort) {
     v8::Handle<Value> cbArgv[] = {
       NanFalse(),
       NanNull()
     };
-    cb->Call(2, cbArgv);
+    cbResult = cb->Call(2, cbArgv);
+    if (cbResult->IsFalse()) {
+      reqAbort = true;
+    }
   }  
   delete cb;
-  if (ps.hasError) {
-    return NanThrowError(ps.error);
-  }
-  NanReturnValue(NanUndefined());
+  if (error.IsEmpty()) {
+    NanReturnValue(NanNew<v8::Boolean>(!reqAbort));
+  } else {
+    return NanThrowError(error);
+  }  
 }
 
 
