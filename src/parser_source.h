@@ -25,7 +25,12 @@ class ParserSource {
   public:
     friend class Parser;
 
-    ParserSource(Parser& parser): parser_(parser) {}
+    ParserSource(Parser& parser): parser_(parser) {
+      // std::cout << "ParserSource::ParserSource" << std::endl;
+    }
+    ~ParserSource() {
+      // std::cout << "ParserSource::~ParserSource" << std::endl;
+    }
     void init(v8::Local<v8::String> s) {
       hasError=false;
       source.init(s);

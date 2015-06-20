@@ -10,7 +10,7 @@ using v8::Function;
 using v8::FunctionTemplate;
 
 
-Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*this) {
+Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options) {
   NanAssignPersistent(errorClass_, errorClass);
   Local<Value> conDefsValue = options->Get(NanNew("connectors"));
   if (conDefsValue->IsObject()) {
@@ -46,12 +46,34 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options): ps_(*
 };
 
 Parser::~Parser() {
+  // std::cout << "Parser::~Parser" << std::endl;
   NanDisposePersistent(errorClass_);
   for (ConnectorMap::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
     delete it->second;
   }
   connectors_.clear();
+  for (std::vector<ParserSource*>::iterator it=psPool_.begin(); it != psPool_.end(); ++it) {
+    delete *it;
+  }
 };
+
+ParserSource* Parser::acquirePs() {
+  // std::cout << "Parser::acquirePs #=" << psPool_.size() << std::endl;
+  ParserSource* ps;
+  if (psPool_.size() > 0) {
+    ps = psPool_.back();
+    psPool_.pop_back();
+  } else {
+    ps = new ParserSource(*this);
+  }
+  return ps;
+}
+
+void Parser::releasePs(ParserSource* ps) {
+  // std::cout << "Parser::releasePs #=" << psPool_.size() << std::endl;
+  psPool_.push_back(ps);
+}
+
 
 Persistent<Function> Parser::constructor;
 Persistent<String> Parser::sEmpty;
@@ -108,14 +130,15 @@ NAN_METHOD(Parser::Parse) {
   Local<String> s = args[0].As<String>();
 
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
-  ParserSource &ps = self->ps_;
-  ps.init(s);
-  Local<Value> result = ps.getValue(NULL);
-  if (ps.hasError) {
-    return NanThrowError(ps.error);
+  ParserSource *ps = self->acquirePs();
+  ps->init(s);
+  Local<Value> result = ps->getValue(NULL);
+  self->releasePs(ps);
+  if (ps->hasError) {
+    return NanThrowError(ps->error);
+  } else {  
+    NanReturnValue(result);
   }
-  NanReturnValue(result);
-
 }
 
 NAN_METHOD(Parser::ParsePartial) {
@@ -132,16 +155,16 @@ NAN_METHOD(Parser::ParsePartial) {
   NanCallback *cb = new NanCallback(cbHandle);
 
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
-  ParserSource &ps = self->ps_;
-  ps.init(s);
+  ParserSource *ps = self->acquirePs();
+  ps->init(s);
   bool reqAbort = false;
   Local<Value> error;
   v8::Handle<Value> cbResult;
-  while (!ps.isEnd()) {
+  while (!ps->isEnd()) {
     bool isValue = true;
-    Local<Value> result = ps.getValue(&isValue);
-    if (ps.hasError) {
-      error = ps.error;
+    Local<Value> result = ps->getValue(&isValue);
+    if (ps->hasError) {
+      error = ps->error;
       reqAbort = true;
       break;
     }
@@ -165,6 +188,7 @@ NAN_METHOD(Parser::ParsePartial) {
       reqAbort = true;
     }
   }  
+  self->releasePs(ps);
   delete cb;
   if (error.IsEmpty()) {
     NanReturnValue(NanNew<v8::Boolean>(!reqAbort));

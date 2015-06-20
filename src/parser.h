@@ -32,6 +32,8 @@ class Parser: public node::ObjectWrap {
     };
 
     inline const ParseConnector* getConnector(const usc2vector&) const;
+    ParserSource* acquirePs();
+    void releasePs(ParserSource*);
 
     static v8::Persistent<v8::Function> constructor;
     static v8::Persistent<v8::String> sEmpty;
@@ -47,7 +49,7 @@ class Parser: public node::ObjectWrap {
 
     v8::Persistent<v8::Function> errorClass_;
     ConnectorMap connectors_;
-    ParserSource ps_;
+    std::vector<ParserSource*> psPool_;
 };
 
 const Parser::ParseConnector* Parser::getConnector(const usc2vector& name) const {
