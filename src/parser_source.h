@@ -36,7 +36,9 @@ class ParserSource {
       source.init(s);
     }
     inline void next() { source.next(); }
+    inline void advance(size_t n) { source.advance(n); }
     inline bool isEnd() { return source.nextType == END; }
+    inline size_t getPos() { return source.nextIdx - 1; }
     inline v8::Local<v8::String> getText();
     inline v8::Local<v8::Value> getLiteral();
     inline v8::Local<v8::Object> getBackreffed(ParseFrame& frame);
@@ -44,6 +46,7 @@ class ParserSource {
     inline v8::Local<v8::Object> getObject(ParseFrame* parentFrame);
     inline v8::Local<v8::Object> getCustom(ParseFrame* parentFrame);
     v8::Local<v8::Value> getValue(bool* isValue);
+    v8::Local<v8::Value> getRawValue(bool* isValue);
     void makeError(int pos = -1, const BaseBuffer* cause=NULL);
   private:
     Parser& parser_;

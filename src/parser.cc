@@ -146,12 +146,14 @@ NAN_METHOD(Parser::ParsePartial) {
   if (args.Length() < 1 || !(args[0]->IsString())) {
     return NanThrowTypeError("First argument should be a string");
   }
-  Local<String> s = args[0].As<String>();
-
-  if (args.Length() < 2 || !(args[1]->IsFunction())) {
+  if (args.Length() < 3 || !(args[2]->IsFunction())) {
     return NanThrowTypeError("Second argument should be a function");
   }
-  Local<Function> cbHandle = args[1].As<Function>();
+
+  Local<String> s = args[0].As<String>();
+  v8::Handle<Value> nextRaw = args[1];
+
+  Local<Function> cbHandle = args[2].As<Function>();
   NanCallback *cb = new NanCallback(cbHandle);
 
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
@@ -159,35 +161,36 @@ NAN_METHOD(Parser::ParsePartial) {
   ps->init(s);
   bool reqAbort = false;
   Local<Value> error;
-  v8::Handle<Value> cbResult;
   while (!ps->isEnd()) {
+    if (nextRaw->IsArray()) {
+      Local<v8::Array> nexts = nextRaw.As<v8::Array>();
+      nextRaw = nexts->Get(0);
+      Local<Value> nAdv = nexts->Get(1);
+      if (nAdv->IsNumber()) {
+        ps->advance(nAdv->NumberValue());
+      }
+    } else if (nextRaw->IsObject()) {
+      error = nextRaw;
+      break;
+    }  
+    if (!nextRaw->IsBoolean()) {
+      reqAbort = true;
+      break;
+    }
     bool isValue = true;
-    Local<Value> result = ps->getValue(&isValue);
+    size_t pos = ps->getPos();
+    Local<Value> result = nextRaw->IsTrue() ? ps->getRawValue(&isValue): ps->getValue(&isValue);
     if (ps->hasError) {
       error = ps->error;
-      reqAbort = true;
       break;
     }
     v8::Handle<Value> cbArgv[] = {
       NanNew(isValue),
-      result
+      result,
+      NanNew<v8::Number>(pos)
     };
-    cbResult = cb->Call(2, cbArgv);
-    if (cbResult->IsFalse()) {
-      reqAbort = true;
-      break;
-    }
+    nextRaw = cb->Call(3, cbArgv);
   }
-  if (!reqAbort) {
-    v8::Handle<Value> cbArgv[] = {
-      NanFalse(),
-      NanNull()
-    };
-    cbResult = cb->Call(2, cbArgv);
-    if (cbResult->IsFalse()) {
-      reqAbort = true;
-    }
-  }  
   self->releasePs(ps);
   delete cb;
   if (error.IsEmpty()) {

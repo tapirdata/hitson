@@ -4,20 +4,23 @@ wson = require '../lib/'
 
 class ParseError extends Error
   name: 'ParseError'
-  constructor: (@s, @pos, cause) ->
-    @message = 'bad bad syntax'
+  constructor: (@s, @pos, @cause) ->
+    @message = 'bad syntax'
 
 class StringifierError extends Error
-  name: 'ParseError'
-  constructor: (@s, @pos, cause) ->
-    @message = 'bad bad syntax'
+  name: 'StringifierError'
+  constructor: (@s, @pos, @cause) ->
+    @message = 'bad syntax'
 
 
-module.exports = (options) ->
+factory = (options) ->
   stringifier = new wson.Stringifier StringifierError, options
   parser = new wson.Parser ParseError, options
   escape: (s) -> stringifier.escape s
   unescape: (s) -> parser.unescape s
   stringify: (x) -> stringifier.stringify x
   parse: (s) -> parser.parse s
-  parsePartial: (s, cb) -> parser.parsePartial s, cb
+  parsePartial: (s, nextRaw, cb) -> parser.parsePartial s, nextRaw, cb
+
+factory.ParseError = ParseError
+module.exports = factory

@@ -41,11 +41,19 @@ class SourceBuffer: public BaseBuffer {
       }
     }
 
+    inline void advance(size_t n) {
+      if (n > 0) {
+        nextIdx = nextIdx - 1 + n;
+        next();
+      }  
+    }
+
     inline int pullUnescaped(TargetBuffer& target) {
       size_t len = buffer_.size();
       while (true) {
         if (nextType == QUOTE) {
           if (nextIdx == len) {
+            ++nextIdx;
             return SYNTAX_ERROR;
           }
           nextChar = getUnescapeChar(buffer_[nextIdx++]);

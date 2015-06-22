@@ -469,7 +469,22 @@ v8::Local<v8::Value> ParserSource::getValue(bool* isValue) {
       }
   }
   if (!isValue && !hasError && !isEnd()) {
-    makeError();
+    makeError(); // extra chars after end
+  }
+  return value;
+}
+
+v8::Local<v8::Value> ParserSource::getRawValue(bool* isValue) {
+  v8::Local<v8::Value> value;
+  switch (source.nextType) {
+    case TEXT:
+    case QUOTE:
+      value = getText();
+      break;
+    default:    
+      *isValue = false;
+      value = NanNew<v8::String>(&source.nextChar, 1);
+      next();
   }
   return value;
 }
@@ -477,9 +492,7 @@ v8::Local<v8::Value> ParserSource::getValue(bool* isValue) {
 void ParserSource::makeError(int pos, const BaseBuffer* cause) {
   // std::cout << "makeError hasMsg=" << (cause != NULL) << std::endl;
   if (pos < 0) {
-    pos = source.nextIdx;
-    if (pos > 0)
-      --pos;
+    pos = isEnd() ? source.size() : source.nextIdx - 1;
   }
   const int argc = 3;
   v8::Local<v8::String> hCause;
