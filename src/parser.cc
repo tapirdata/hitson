@@ -160,10 +160,10 @@ NAN_METHOD(Parser::ParsePartial) {
   ParserSource *ps = self->acquirePs();
   ps->init(s);
   bool reqAbort = false;
-  Local<Value> error;
+  v8::Handle<Value> error;
   while (!ps->isEnd()) {
     if (nextRaw->IsArray()) {
-      Local<v8::Array> nexts = nextRaw.As<v8::Array>();
+      v8::Handle<v8::Array> nexts = nextRaw.As<v8::Array>();
       nextRaw = nexts->Get(0);
       Local<Value> nAdv = nexts->Get(1);
       if (nAdv->IsNumber()) {
