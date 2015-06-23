@@ -36,9 +36,9 @@ class ParserSource {
       source.init(s);
     }
     inline void next() { source.next(); }
-    inline void advance(size_t n) { source.advance(n); }
+    inline void skip(size_t n) { source.skip(n); }
     inline bool isEnd() { return source.nextType == END; }
-    inline size_t getPos() { return source.nextIdx - 1; }
+    inline size_t getPos() { return isEnd() ? source.size() : source.nextIdx - 1; }
     inline v8::Local<v8::String> getText();
     inline v8::Local<v8::Value> getLiteral();
     inline v8::Local<v8::Object> getBackreffed(ParseFrame& frame);

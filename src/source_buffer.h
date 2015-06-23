@@ -41,7 +41,7 @@ class SourceBuffer: public BaseBuffer {
       }
     }
 
-    inline void advance(size_t n) {
+    inline void skip(size_t n) {
       if (n > 0) {
         nextIdx = nextIdx - 1 + n;
         next();

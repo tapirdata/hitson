@@ -2,6 +2,7 @@
 #include "parser.h"
 
 using v8::Local;
+using v8::Handle;
 using v8::Persistent;
 using v8::Value;
 using v8::String;
@@ -151,7 +152,7 @@ NAN_METHOD(Parser::ParsePartial) {
   }
 
   Local<String> s = args[0].As<String>();
-  v8::Handle<Value> nextRaw = args[1];
+  Handle<Value> howNext = args[1];
 
   Local<Function> cbHandle = args[2].As<Function>();
   NanCallback *cb = new NanCallback(cbHandle);
@@ -160,36 +161,40 @@ NAN_METHOD(Parser::ParsePartial) {
   ParserSource *ps = self->acquirePs();
   ps->init(s);
   bool reqAbort = false;
-  v8::Handle<Value> error;
+  Handle<Value> error;
   while (!ps->isEnd()) {
-    if (nextRaw->IsArray()) {
-      v8::Handle<v8::Array> nexts = nextRaw.As<v8::Array>();
-      nextRaw = nexts->Get(0);
-      Local<Value> nAdv = nexts->Get(1);
-      if (nAdv->IsNumber()) {
-        ps->advance(nAdv->NumberValue());
+    Handle<Value> nextRaw;
+    if (howNext->IsArray()) {
+      Handle<v8::Array> howNextArr = howNext.As<v8::Array>();
+      nextRaw = howNextArr->Get(0);
+      Local<Value> nSkip = howNextArr->Get(1);
+      if (nSkip->IsNumber()) {
+        int nSkipVal = nSkip->NumberValue();
+        ps->skip(nSkipVal);
       }
-    } else if (nextRaw->IsObject()) {
-      error = nextRaw;
+    } else if (howNext->IsObject()) {
+      error = howNext;
       break;
-    }  
+    } else {
+      nextRaw = howNext;
+    }
     if (!nextRaw->IsBoolean()) {
       reqAbort = true;
       break;
     }
     bool isValue = true;
-    size_t pos = ps->getPos();
     Local<Value> result = nextRaw->IsTrue() ? ps->getRawValue(&isValue): ps->getValue(&isValue);
     if (ps->hasError) {
       error = ps->error;
       break;
     }
+    size_t pos = ps->getPos();
     v8::Handle<Value> cbArgv[] = {
       NanNew(isValue),
       result,
       NanNew<v8::Number>(pos)
     };
-    nextRaw = cb->Call(3, cbArgv);
+    howNext = cb->Call(3, cbArgv);
   }
   self->releasePs(ps);
   delete cb;
