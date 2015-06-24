@@ -162,7 +162,7 @@ NAN_METHOD(Parser::ParsePartial) {
   ps->init(s);
   bool reqAbort = false;
   Handle<Value> error;
-  while (!ps->isEnd()) {
+  while (true) {
     Handle<Value> nextRaw;
     if (howNext->IsArray()) {
       Handle<v8::Array> howNextArr = howNext.As<v8::Array>();
@@ -177,6 +177,9 @@ NAN_METHOD(Parser::ParsePartial) {
       break;
     } else {
       nextRaw = howNext;
+    }
+    if (ps->isEnd()) {
+      break;
     }
     if (!nextRaw->IsBoolean()) {
       reqAbort = true;
