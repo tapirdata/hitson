@@ -108,8 +108,8 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
   return value;
 }
 
-v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
-  v8::Local<v8::Object> value = NanNew<v8::Object>();
+v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
+  v8::Handle<v8::Object> value = NanNew<v8::Object>();
   bool refErr = false;
   size_t refBeginIdx = source.nextIdx - 1;
   Ctype nextType = source.nextType;
@@ -125,8 +125,22 @@ v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
       } else {
         ParseFrame *idxFrame = &frame;
         while (refIdx > 0) {
-          idxFrame = idxFrame->parent;
-          if (!idxFrame) {
+          ParseFrame* parentIdxFrame = idxFrame->parent;
+          if (parentIdxFrame) {
+            idxFrame = parentIdxFrame;
+          } else if (idxFrame->backrefCb) {
+            v8::Handle<v8::Value> cbArgv[] = {
+              NanNew<v8::Number>(refIdx - 1),
+            };
+            v8::Handle<v8::Value> brValue = idxFrame->backrefCb->Call(1, cbArgv);
+            if (brValue->IsObject()) {
+              value = brValue.As<v8::Object>();
+            } else {
+              refErr = true;
+            }
+            idxFrame = NULL;
+            break;
+          } else {
             refErr = true;
             break;
           }
@@ -138,7 +152,7 @@ v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
           } else {
             idxFrame->isBackreffed = true;
             value = idxFrame->value;
-          }  
+          }
         }
       }
     }
@@ -165,7 +179,7 @@ v8::Local<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
   }
 
   v8::Local<v8::Array> value = NanNew<v8::Array>();
-  ParseFrame frame(value, parentFrame);
+  ParseFrame frame(value, parentFrame, parentFrame ? NULL : backrefCb);
   if (hasError) goto end;
   switch (source.nextType) {
     case ENDARRAY:
@@ -225,7 +239,7 @@ end:
 }
 
 v8::Local<v8::Object> ParserSource::getObject(ParseFrame* parentFrame) {
-  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
+  ParseFrame frame(NanNew<v8::Object>(), parentFrame, parentFrame ? NULL : backrefCb);
   v8::Local<v8::String> key;
   if (hasError) goto end;
 
@@ -322,7 +336,7 @@ end:
 v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   // std::cout << "getCustom" << std::endl;
   bool stolenBackref = false;
-  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
+  ParseFrame frame(NanNew<v8::Object>(), parentFrame, parentFrame ? NULL : backrefCb);
   v8::Local<v8::Array> args = NanNew<v8::Array>();
   const Parser::ParseConnector* connector(NULL);
   size_t nameIdx = source.nextIdx - 1; // for error
@@ -481,7 +495,7 @@ v8::Local<v8::Value> ParserSource::getRawValue(bool* isValue) {
     case QUOTE:
       value = getText();
       break;
-    default:    
+    default:
       *isValue = false;
       value = NanNew<v8::String>(&source.nextChar, 1);
       next();

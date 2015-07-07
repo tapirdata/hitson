@@ -56,7 +56,7 @@ const Parser::ParseConnector* Parser::getConnector(const usc2vector& name) const
   ConnectorMap::const_iterator it = connectors_.find(name);
   if (it == connectors_.end()) {
     return NULL;
-  }  
+  }
   return it->second;
 }
 

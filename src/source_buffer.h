@@ -45,7 +45,7 @@ class SourceBuffer: public BaseBuffer {
       if (n > 0) {
         nextIdx = nextIdx - 1 + n;
         next();
-      }  
+      }
     }
 
     inline int pullUnescaped(TargetBuffer& target) {

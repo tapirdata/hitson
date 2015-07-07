@@ -19,8 +19,10 @@ factory = (options) ->
   escape: (s) -> stringifier.escape s
   unescape: (s) -> parser.unescape s
   stringify: (x) -> stringifier.stringify x
-  parse: (s) -> parser.parse s
-  parsePartial: (s, howNext, cb) -> parser.parsePartial s, howNext, cb
+  parse: (s, options) ->
+    parser.parse s, options.backrefCb
+  parsePartial: (s, options) ->
+    parser.parsePartial s, options.howNext, options.cb, options.backrefCb
 
 factory.ParseError = ParseError
 module.exports = factory

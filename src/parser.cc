@@ -130,14 +130,21 @@ NAN_METHOD(Parser::Parse) {
   }
   Local<String> s = args[0].As<String>();
 
+  NanCallback *backrefCb = NULL;
+  if (args.Length() >= 2 && (args[1]->IsFunction())) {
+    Local<Function> backrefCbHandle = args[1].As<Function>();
+    backrefCb = new NanCallback(backrefCbHandle);
+  }
+
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
   ParserSource *ps = self->acquirePs();
-  ps->init(s);
+  ps->init(s, backrefCb);
   Local<Value> result = ps->getValue(NULL);
   self->releasePs(ps);
+  delete backrefCb;
   if (ps->hasError) {
     return NanThrowError(ps->error);
-  } else {  
+  } else {
     NanReturnValue(result);
   }
 }
@@ -157,9 +164,15 @@ NAN_METHOD(Parser::ParsePartial) {
   Local<Function> cbHandle = args[2].As<Function>();
   NanCallback *cb = new NanCallback(cbHandle);
 
+  NanCallback *backrefCb = NULL;
+  if (args.Length() >= 4 && (args[3]->IsFunction())) {
+    Local<Function> backrefCbHandle = args[3].As<Function>();
+    backrefCb = new NanCallback(backrefCbHandle);
+  }
+
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
   ParserSource *ps = self->acquirePs();
-  ps->init(s);
+  ps->init(s, backrefCb);
   bool reqAbort = false;
   Handle<Value> error;
   while (true) {
@@ -201,11 +214,12 @@ NAN_METHOD(Parser::ParsePartial) {
   }
   self->releasePs(ps);
   delete cb;
+  delete backrefCb;
   if (error.IsEmpty()) {
     NanReturnValue(NanNew<v8::Boolean>(!reqAbort));
   } else {
     return NanThrowError(error);
-  }  
+  }
 }
 
 
