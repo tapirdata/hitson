@@ -22,16 +22,26 @@ void StringifierTarget::putText(const usc2vector& buffer, size_t start, size_t l
 
 bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
   handleVector::const_iterator haveIt = std::find(haves.begin(), haves.end(), x);
-  if (haveIt == haves.end()) {
+  size_t idx;
+  if (haveIt != haves.end()) {
+    idx = haves.end() - haveIt - 1;
+  } else if (haverefCb) {
+    v8::Handle<v8::Value> cbArgv[] = {
+      x
+    };
+    v8::Handle<v8::Value> haveIdx = haverefCb->Call(1, cbArgv);
+    if (!haveIdx->IsUint32()) {
+      return false;
+    }
+    idx = haves.size() + haveIdx->Uint32Value();  
+  } else { 
     return false;
-  } else {
-    size_t idx = haves.end() - haveIt - 1;
-    std::stringstream idxBuf;
-    idxBuf << idx;
-    target.push('|');
-    target.append(idxBuf.str());
-    return true;
   }
+  std::stringstream idxBuf;
+  idxBuf << idx;
+  target.push('|');
+  target.append(idxBuf.str());
+  return true;
 }
 
 void StringifierTarget::putValue(v8::Local<v8::Value> x) {

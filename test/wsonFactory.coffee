@@ -18,7 +18,8 @@ factory = (options) ->
   parser = new wson.Parser ParseError, options
   escape: (s) -> stringifier.escape s
   unescape: (s) -> parser.unescape s
-  stringify: (x) -> stringifier.stringify x
+  stringify: (x, options) ->
+    stringifier.stringify x, options.haverefCb
   parse: (s, options) ->
     parser.parse s, options.backrefCb
   parsePartial: (s, options) ->

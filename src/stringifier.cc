@@ -87,10 +87,22 @@ NAN_METHOD(Stringifier::Stringify) {
   NanScope();
   Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(args.This());
   StringifierTarget &st = self->st_;
-  // st.target.reserve(128);
-  st.clear();
+  if (args.Length() < 1) {
+    return NanThrowTypeError("Missing first argument");
+  }
+
+  NanCallback *haverefCb = NULL;
+  if (args.Length() >= 2 && (args[1]->IsFunction())) {
+    Local<Function> haveCbHandle = args[1].As<Function>();
+    haverefCb = new NanCallback(haveCbHandle);
+  }
+
+  st.clear(haverefCb);
   st.put(args[0]);
-  NanReturnValue(st.target.getHandle());
+
+  Local<Value> result = st.target.getHandle();
+  delete haverefCb;
+  NanReturnValue(result);
 }
 
 void Stringifier::Init(v8::Handle<v8::Object> exports) {
