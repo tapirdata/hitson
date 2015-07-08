@@ -1,6 +1,6 @@
 {
   "name": "wson-addon",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "An addon for faster WSON stringifying/parsing",
   "main": "./lib",
   "scripts": {
