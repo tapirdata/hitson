@@ -90,7 +90,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
     }
     haves.push_back(x);
 
-    const Stringifier::StringifyConnector* connector = stringifier_.getConnector(xObj);
+    const Stringifier::StringifyConnector* connector = stringifier_.findConnector(xObj);
     if (connector) {
       target.push('[');
       target.push(':');

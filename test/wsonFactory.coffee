@@ -24,6 +24,8 @@ factory = (options) ->
     parser.parse s, options.backrefCb
   parsePartial: (s, options) ->
     parser.parsePartial s, options.howNext, options.cb, options.backrefCb
+  connectorOfCname: (cname) -> parser.connectorOfCname cname  
+  connectorOfValue: (value) -> stringifier.connectorOfValue value
 
 factory.ParseError = ParseError
 module.exports = factory

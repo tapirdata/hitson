@@ -1,5 +1,6 @@
 #include "stringifier.h"
 
+using v8::Handle;
 using v8::Local;
 using v8::Value;
 using v8::String;
@@ -47,6 +48,7 @@ v8::Persistent<v8::Function> Stringifier::constructor;
 v8::Persistent<v8::String> Stringifier::sBy;
 v8::Persistent<v8::String> Stringifier::sSplit;
 v8::Persistent<v8::String> Stringifier::sConstructor;
+v8::Persistent<v8::Function> Stringifier::objectConstructor;
 
 NAN_METHOD(Stringifier::New) {
   NanScope();
@@ -105,7 +107,26 @@ NAN_METHOD(Stringifier::Stringify) {
   NanReturnValue(result);
 }
 
-void Stringifier::Init(v8::Handle<v8::Object> exports) {
+NAN_METHOD(Stringifier::ConnectorOfValue) {
+  NanScope();
+  if (args.Length() < 1) {
+    return NanThrowTypeError("Missing first argument");
+  }
+  Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(args.This());
+  const StringifyConnector* connector = NULL;
+  if (args[0]->IsObject()) {
+    connector = self->findConnector(args[0].As<Object>());
+  }
+  Handle<Value> result;
+  if (connector) {
+    result = NanNew<Object>(connector->self);
+  } else {
+    result = NanNull();
+  }
+  NanReturnValue(result);
+}  
+
+void Stringifier::Init(Handle<Object> exports) {
   NanScope();
 
   Local<FunctionTemplate> newTpl = NanNew<FunctionTemplate>(New);
@@ -114,11 +135,15 @@ void Stringifier::Init(v8::Handle<v8::Object> exports) {
 
   NODE_SET_PROTOTYPE_METHOD(newTpl, "escape", Escape);
   NODE_SET_PROTOTYPE_METHOD(newTpl, "stringify", Stringify);
+  NODE_SET_PROTOTYPE_METHOD(newTpl, "connectorOfValue", ConnectorOfValue);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
   NanAssignPersistent(sBy, NanNew("by"));
   NanAssignPersistent(sSplit, NanNew("split"));
   NanAssignPersistent(sConstructor, NanNew("constructor"));
+  NanAssignPersistent(objectConstructor, 
+    NanNew<Object>()->Get(NanNew(sConstructor)).As<Function>()
+  );
 
   exports->Set(NanNew("Stringifier"), newTpl->GetFunction());
 

@@ -25,16 +25,18 @@ class Stringifier: public node::ObjectWrap {
       }
     };
 
-    inline const StringifyConnector* getConnector(v8::Local<v8::Object>) const;
+    inline const StringifyConnector* findConnector(v8::Local<v8::Object>) const;
 
     static v8::Persistent<v8::Function> constructor;
     static v8::Persistent<v8::String> sBy;
     static v8::Persistent<v8::String> sSplit;
     static v8::Persistent<v8::String> sConstructor;
+    static v8::Persistent<v8::Function> objectConstructor;
 
     static NAN_METHOD(New);
     static NAN_METHOD(Escape);
     static NAN_METHOD(Stringify);
+    static NAN_METHOD(ConnectorOfValue);
 
     typedef std::vector<StringifyConnector*> ConnectorVector;
 
@@ -43,10 +45,11 @@ class Stringifier: public node::ObjectWrap {
     StringifierTarget st_;
 };
 
-const Stringifier::StringifyConnector* Stringifier::getConnector(v8::Local<v8::Object> x) const {
+const Stringifier::StringifyConnector* Stringifier::findConnector(v8::Local<v8::Object> x) const {
   v8::Local<v8::Value> constructor = x->Get(NanNew(sConstructor));
-  if (constructor->IsFunction()) {
+  if (constructor->IsFunction() and constructor != objectConstructor) {
     for (ConnectorVector::const_iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
+      // std::cout << "findConnector" << std::endl;
       if ((*it)->by == constructor) {
         return (*it);
       }

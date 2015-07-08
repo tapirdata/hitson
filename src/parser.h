@@ -44,6 +44,7 @@ class Parser: public node::ObjectWrap {
     static NAN_METHOD(Unescape);
     static NAN_METHOD(Parse);
     static NAN_METHOD(ParsePartial);
+    static NAN_METHOD(ConnectorOfCname);
 
     typedef std::map<usc2vector, ParseConnector* > ConnectorMap;
 

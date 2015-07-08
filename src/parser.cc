@@ -222,6 +222,23 @@ NAN_METHOD(Parser::ParsePartial) {
   }
 }
 
+NAN_METHOD(Parser::ConnectorOfCname) {
+  NanScope();
+  if (args.Length() < 1 || !(args[0]->IsString())) {
+    return NanThrowTypeError("First argument should be a string");
+  }
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
+  BaseBuffer name;
+  name.appendHandle(args[0].As<String>());
+  const ParseConnector* connector = self->getConnector(name.getBuffer());
+  Handle<Value> result;
+  if (connector) {
+    result = NanNew<Object>(connector->self);
+  } else {
+    result = NanNull();
+  }
+  NanReturnValue(result);
+}  
 
 void Parser::Init(v8::Handle<v8::Object> exports) {
   NanScope();
@@ -233,6 +250,7 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(newTpl, "unescape", Unescape);
   NODE_SET_PROTOTYPE_METHOD(newTpl, "parse", Parse);
   NODE_SET_PROTOTYPE_METHOD(newTpl, "parsePartial", ParsePartial);
+  NODE_SET_PROTOTYPE_METHOD(newTpl, "connectorOfCname", ConnectorOfCname);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
   NanAssignPersistent(sEmpty, NanNew(""));
