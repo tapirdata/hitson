@@ -10,14 +10,12 @@ class Parser;
 struct ParseFrame {
   v8::Local<v8::Object> value;
   ParseFrame *parent;
-  NanCallback* backrefCb;
   bool isBackreffed;
   bool vetoBackref;
 
-  inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p, NanCallback* brCb):
+  inline ParseFrame(v8::Local<v8::Object> v, ParseFrame *p):
     value(v),
     parent(p),
-    backrefCb(brCb),
     isBackreffed(false),
     vetoBackref(false)
   {}
@@ -44,7 +42,7 @@ class ParserSource {
     inline size_t getPos() { return isEnd() ? source.size() : source.nextIdx - 1; }
     inline v8::Local<v8::String> getText();
     inline v8::Local<v8::Value> getLiteral();
-    inline v8::Handle<v8::Object> getBackreffed(ParseFrame& frame);
+    inline v8::Handle<v8::Object> getBackreffed(ParseFrame* frame);
     inline v8::Local<v8::Object> getArray(ParseFrame* parentFrame);
     inline v8::Local<v8::Object> getObject(ParseFrame* parentFrame);
     inline v8::Local<v8::Object> getCustom(ParseFrame* parentFrame);

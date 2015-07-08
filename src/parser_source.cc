@@ -108,7 +108,7 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
   return value;
 }
 
-v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
+v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
   v8::Handle<v8::Object> value = NanNew<v8::Object>();
   bool refErr = false;
   size_t refBeginIdx = source.nextIdx - 1;
@@ -123,16 +123,19 @@ v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame& frame) {
       if (!getInteger(source.nextString, refIdx) || refIdx < 0) {
         refErr = true;
       } else {
-        ParseFrame *idxFrame = &frame;
-        while (refIdx > 0) {
-          ParseFrame* parentIdxFrame = idxFrame->parent;
+        if (frame) {
+          --refIdx;
+        }
+        ParseFrame *idxFrame = frame;
+        while (refIdx >= 0) {
+          ParseFrame* parentIdxFrame = frame ? idxFrame->parent : NULL;
           if (parentIdxFrame) {
             idxFrame = parentIdxFrame;
-          } else if (idxFrame->backrefCb) {
+          } else if (backrefCb) {
             v8::Handle<v8::Value> cbArgv[] = {
-              NanNew<v8::Number>(refIdx - 1),
+              NanNew<v8::Number>(refIdx)
             };
-            v8::Handle<v8::Value> brValue = idxFrame->backrefCb->Call(1, cbArgv);
+            v8::Handle<v8::Value> brValue = backrefCb->Call(1, cbArgv);
             if (brValue->IsObject()) {
               value = brValue.As<v8::Object>();
             } else {
@@ -179,7 +182,7 @@ v8::Local<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
   }
 
   v8::Local<v8::Array> value = NanNew<v8::Array>();
-  ParseFrame frame(value, parentFrame, parentFrame ? NULL : backrefCb);
+  ParseFrame frame(value, parentFrame);
   if (hasError) goto end;
   switch (source.nextType) {
     case ENDARRAY:
@@ -213,7 +216,7 @@ stageNext:
       goto stageHave;
     case PIPE:
       next();
-      value->Set(value->Length(), getBackreffed(frame));
+      value->Set(value->Length(), getBackreffed(&frame));
       if (hasError) goto end;
       goto stageHave;
     default:
@@ -239,7 +242,7 @@ end:
 }
 
 v8::Local<v8::Object> ParserSource::getObject(ParseFrame* parentFrame) {
-  ParseFrame frame(NanNew<v8::Object>(), parentFrame, parentFrame ? NULL : backrefCb);
+  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
   v8::Local<v8::String> key;
   if (hasError) goto end;
 
@@ -308,7 +311,7 @@ stageHaveColon:
       goto stageHaveValue;
     case PIPE:
       next();
-      frame.value->Set(key, getBackreffed(frame));
+      frame.value->Set(key, getBackreffed(&frame));
       if (hasError) goto end;
       goto stageHaveValue;
     default:
@@ -336,7 +339,7 @@ end:
 v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   // std::cout << "getCustom" << std::endl;
   bool stolenBackref = false;
-  ParseFrame frame(NanNew<v8::Object>(), parentFrame, parentFrame ? NULL : backrefCb);
+  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
   v8::Local<v8::Array> args = NanNew<v8::Array>();
   const Parser::ParseConnector* connector(NULL);
   size_t nameIdx = source.nextIdx - 1; // for error
@@ -397,7 +400,7 @@ stageNext:
       goto stageHave;
     case PIPE:
       next();
-      args->Set(args->Length(), getBackreffed(frame));
+      args->Set(args->Length(), getBackreffed(&frame));
       if (hasError) goto end;
       goto stageHave;
     default:
@@ -472,6 +475,10 @@ v8::Local<v8::Value> ParserSource::getValue(bool* isValue) {
     case OBJECT:
       next();
       value = getObject(NULL);
+      break;
+    case PIPE:
+      next();
+      value = getBackreffed(NULL);
       break;
     default:
       if (isValue) {
