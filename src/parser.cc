@@ -139,7 +139,7 @@ NAN_METHOD(Parser::Parse) {
   Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
   ParserSource *ps = self->acquirePs();
   ps->init(s, backrefCb);
-  Local<Value> result = ps->getValue(NULL);
+  Handle<Value> result = ps->getValue(NULL);
   self->releasePs(ps);
   delete backrefCb;
   if (ps->hasError) {
@@ -199,7 +199,7 @@ NAN_METHOD(Parser::ParsePartial) {
       break;
     }
     bool isValue = true;
-    Local<Value> result = nextRaw->IsTrue() ? ps->getRawValue(&isValue): ps->getValue(&isValue);
+    Handle<Value> result = nextRaw->IsTrue() ? ps->getRawValue(&isValue): ps->getValue(&isValue);
     if (ps->hasError) {
       error = ps->error;
       break;

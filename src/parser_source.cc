@@ -4,7 +4,7 @@
 
 
 
-inline bool getNumber(const std::string& s, v8::Local<v8::Value>& value) {
+inline bool getNumber(const std::string& s, v8::Handle<v8::Value>& value) {
   const char* begin = s.data();
   char* end;
   int x = strtol(begin, &end, 10);
@@ -21,7 +21,7 @@ inline bool getNumber(const std::string& s, v8::Local<v8::Value>& value) {
   return false;
 }
 
-inline bool getDate(const std::string& s, v8::Local<v8::Value>& value) {
+inline bool getDate(const std::string& s, v8::Handle<v8::Value>& value) {
   // std::cout << "getDate: " << s << std::endl;
   const char* begin = s.data();
   char* end;
@@ -44,7 +44,7 @@ inline bool getInteger(const std::string& s, int& value) {
   return false;
 }
 
-v8::Local<v8::String> ParserSource::getText() {
+v8::Handle<v8::String> ParserSource::getText() {
  int err = source.pullUnescapedBuffer();
  if (err) {
    makeError();
@@ -53,8 +53,8 @@ v8::Local<v8::String> ParserSource::getText() {
  return source.nextBuffer.getHandle();
 }
 
-v8::Local<v8::Value> ParserSource::getLiteral() {
-  v8::Local<v8::Value> value;
+v8::Handle<v8::Value> ParserSource::getLiteral() {
+  v8::Handle<v8::Value> value;
   if (hasError) return value;
   if (source.nextType == TEXT) {
     bool litErr = false;
@@ -175,7 +175,7 @@ v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
   return value;
 }
 
-v8::Local<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
+v8::Handle<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
   if (source.nextType == IS) {
     next();
     return getCustom(parentFrame);
@@ -241,9 +241,9 @@ end:
   return value;
 }
 
-v8::Local<v8::Object> ParserSource::getObject(ParseFrame* parentFrame) {
+v8::Handle<v8::Object> ParserSource::getObject(ParseFrame* parentFrame) {
   ParseFrame frame(NanNew<v8::Object>(), parentFrame);
-  v8::Local<v8::String> key;
+  v8::Handle<v8::String> key;
   if (hasError) goto end;
 
   switch (source.nextType) {
@@ -336,7 +336,7 @@ end:
   return frame.value;
 }
 
-v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
+v8::Handle<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   // std::cout << "getCustom" << std::endl;
   bool stolenBackref = false;
   ParseFrame frame(NanNew<v8::Object>(), parentFrame);
@@ -456,8 +456,8 @@ end:
   return frame.value;
 }
 
-v8::Local<v8::Value> ParserSource::getValue(bool* isValue) {
-  v8::Local<v8::Value> value;
+v8::Handle<v8::Value> ParserSource::getValue(bool* isValue) {
+  v8::Handle<v8::Value> value;
   if (hasError) return value;
   switch (source.nextType) {
     case TEXT:
@@ -495,8 +495,8 @@ v8::Local<v8::Value> ParserSource::getValue(bool* isValue) {
   return value;
 }
 
-v8::Local<v8::Value> ParserSource::getRawValue(bool* isValue) {
-  v8::Local<v8::Value> value;
+v8::Handle<v8::Value> ParserSource::getRawValue(bool* isValue) {
+  v8::Handle<v8::Value> value;
   switch (source.nextType) {
     case TEXT:
     case QUOTE:
