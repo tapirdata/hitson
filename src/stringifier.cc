@@ -85,6 +85,16 @@ NAN_METHOD(Stringifier::Escape) {
 }
 
 
+NAN_METHOD(Stringifier::GetTypeid) {
+  NanScope();
+  if (args.Length() < 1) {
+    return NanThrowTypeError("Missing argument");
+  }
+  int ti = getTypeid(args[0]);
+  NanReturnValue(NanNew<v8::Number>(ti));
+}
+
+
 NAN_METHOD(Stringifier::Stringify) {
   NanScope();
   Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(args.This());
@@ -124,7 +134,7 @@ NAN_METHOD(Stringifier::ConnectorOfValue) {
     result = NanNull();
   }
   NanReturnValue(result);
-}  
+}
 
 void Stringifier::Init(Handle<Object> exports) {
   NanScope();
@@ -134,6 +144,7 @@ void Stringifier::Init(Handle<Object> exports) {
   newTpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(newTpl, "escape", Escape);
+  NODE_SET_PROTOTYPE_METHOD(newTpl, "getTypeid", GetTypeid);
   NODE_SET_PROTOTYPE_METHOD(newTpl, "stringify", Stringify);
   NODE_SET_PROTOTYPE_METHOD(newTpl, "connectorOfValue", ConnectorOfValue);
 
@@ -141,7 +152,7 @@ void Stringifier::Init(Handle<Object> exports) {
   NanAssignPersistent(sBy, NanNew("by"));
   NanAssignPersistent(sSplit, NanNew("split"));
   NanAssignPersistent(sConstructor, NanNew("constructor"));
-  NanAssignPersistent(objectConstructor, 
+  NanAssignPersistent(objectConstructor,
     NanNew<Object>()->Get(NanNew(sConstructor)).As<Function>()
   );
 

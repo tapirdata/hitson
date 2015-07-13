@@ -24,7 +24,7 @@ haverefCb = (item) ->
   for back, idx in extBacks
     if item == back
       return idx
-  null  
+  null
 
 
 module.exports = [
@@ -136,7 +136,7 @@ module.exports = [
     s: '[{}]'
   }
   {
-    x: {y:[], x:true} 
+    x: {y:[], x:true}
     s: '{x|y:[]}'
   }
   {
@@ -144,7 +144,7 @@ module.exports = [
     s: '{a:{}}'
   }
   {
-    x: {a:{a:['b',{c:3}],b:{c:[8,2]}}}, 
+    x: {a:{a:['b',{c:3}],b:{c:[8,2]}}},
     s:'{a:{a:[b|{c:#3}]|b:{c:[#8|#2]}}}'
   }
   {
@@ -179,7 +179,7 @@ module.exports = [
   # ext backref
   {
     x: {a: 3, b: extBacks[0]}
-    s: '{a:#3|b:|1}' 
+    s: '{a:#3|b:|1}'
     backrefCb: backrefCb
     haverefCb: haverefCb
   }
@@ -197,13 +197,13 @@ module.exports = [
   }
   {
     x: extBacks[0]
-    s: '|0' 
+    s: '|0'
     backrefCb: backrefCb
     haverefCb: haverefCb
   }
   {
     x: extBacks[1]
-    s: '|1' 
+    s: '|1'
     backrefCb: backrefCb
     haverefCb: haverefCb
   }

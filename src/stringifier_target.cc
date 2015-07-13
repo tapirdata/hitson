@@ -33,8 +33,8 @@ bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
     if (!haveIdx->IsUint32()) {
       return false;
     }
-    idx = haves.size() + haveIdx->Uint32Value();  
-  } else { 
+    idx = haves.size() + haveIdx->Uint32Value();
+  } else {
     return false;
   }
   std::stringstream idxBuf;
@@ -45,79 +45,90 @@ bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
 }
 
 void StringifierTarget::putValue(v8::Local<v8::Value> x) {
-  if (x->IsString()) {
-    putText(x.As<v8::String>());
-  } else if (x->IsNumber()) {
-    target.push('#');
-    target.appendHandle(x->ToString());
-  } else if (x->IsUndefined()) {
-    target.push('#');
-    target.push('u');
-  } else if (x->IsNull()) {
-    target.push('#');
-    target.push('n');
-  } else if (x->IsBoolean()) {
-    target.push('#');
-    if (x->BooleanValue()) {
-      target.push('t');
-    } else {
-      target.push('f');
-    }
-  } else if (x->IsDate()) {
-    target.push('#');
-    target.push('d');
-    target.appendHandle(NanNew<v8::Number>(x->NumberValue())->ToString());
-  } else if (x->IsArray()) {
-    if (putBackref(x.As<v8::Object>())) {
-      return;
-    }
-    haves.push_back(x);
-    v8::Local<v8::Array> array = x.As<v8::Array>();
-    uint32_t len = array->Length();
-    target.push('[');
-    for (uint32_t i=0; i<len; ++i) {
-      putValue(array->Get(i));
-      if (i + 1 != len) {
-        target.push('|');
+  int ti = Stringifier::getTypeid(x);
+  switch (ti) {
+    case TI_UNDEFINED:
+      target.push('#');
+      target.push('u');
+      break;
+    case TI_NULL:
+      target.push('#');
+      target.push('n');
+      break;
+    case TI_BOOLEAN:
+      target.push('#');
+      if (x->BooleanValue())
+        target.push('t');
+      else
+        target.push('f');
+      break;
+    case TI_NUMBER:
+      target.push('#');
+      target.appendHandle(x->ToString());
+      break;
+    case TI_DATE:
+      target.push('#');
+      target.push('d');
+      target.appendHandle(NanNew<v8::Number>(x->NumberValue())->ToString());
+      break;
+    case TI_STRING:
+      putText(x.As<v8::String>());
+      break;
+    case TI_ARRAY: {
+      if (putBackref(x.As<v8::Object>())) {
+        return;
       }
-    }
-    target.push(']');
-    haves.pop_back();
-  } else if (x->IsObject()) {
-    v8::Local<v8::Object> xObj = x.As<v8::Object>();
-    if (putBackref(xObj)) {
-      return;
-    }
-    haves.push_back(x);
-
-    const Stringifier::StringifyConnector* connector = stringifier_.findConnector(xObj);
-    if (connector) {
+      haves.push_back(x);
+      v8::Local<v8::Array> array = x.As<v8::Array>();
+      uint32_t len = array->Length();
       target.push('[');
-      target.push(':');
-      target.append(connector->name.getBuffer());
-      const int argc = 1;
-      v8::Local<v8::Value> argv[argc] = {x};
-      v8::Local<v8::Function> split = NanNew<v8::Function>(connector->split);
-      if (!split.IsEmpty()) {
-        v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(connector->self), argc, argv);
-        if (!args.IsEmpty() && args->IsArray()) {
-          v8::Local<v8::Array> argsArray = args.As<v8::Array>();
-          uint32_t len = argsArray->Length();
-          for (uint32_t i=0; i<len; ++i) {
-            target.push('|');
-            putValue(argsArray->Get(i));
-          }
+      for (uint32_t i=0; i<len; ++i) {
+        putValue(array->Get(i));
+        if (i + 1 != len) {
+          target.push('|');
         }
       }
       target.push(']');
-    } else {
-      ObjectAdaptor *oa = getOa();
-      oa->putObject(xObj);
-      oa->sort();
-      oa->emit(*this);
-      releaseOa(oa);
+      haves.pop_back();
+      break;
     }
-    haves.pop_back();
+    case TI_OBJECT: {
+      v8::Local<v8::Object> xObj = x.As<v8::Object>();
+      if (putBackref(xObj)) {
+        return;
+      }
+      haves.push_back(x);
+
+      const Stringifier::StringifyConnector* connector = stringifier_.findConnector(xObj);
+      if (connector) {
+        target.push('[');
+        target.push(':');
+        target.append(connector->name.getBuffer());
+        const int argc = 1;
+        v8::Local<v8::Value> argv[argc] = {x};
+        v8::Local<v8::Function> split = NanNew<v8::Function>(connector->split);
+        if (!split.IsEmpty()) {
+          v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(connector->self), argc, argv);
+          if (!args.IsEmpty() && args->IsArray()) {
+            v8::Local<v8::Array> argsArray = args.As<v8::Array>();
+            uint32_t len = argsArray->Length();
+            for (uint32_t i=0; i<len; ++i) {
+              target.push('|');
+              putValue(argsArray->Get(i));
+            }
+          }
+        }
+        target.push(']');
+      } else {
+        ObjectAdaptor *oa = getOa();
+        oa->putObject(xObj);
+        oa->sort();
+        oa->emit(*this);
+        releaseOa(oa);
+      }
+      haves.pop_back();
+      break;
+    }
   }
 }
 

@@ -3,6 +3,18 @@
 
 #include "stringifier_target.h"
 
+enum {
+  TI_FAIL      = 0,
+  TI_UNDEFINED = 1,
+  TI_NULL      = 2,
+  TI_BOOLEAN   = 4,
+  TI_NUMBER    = 8,
+  TI_DATE      = 16,
+  TI_STRING    = 20,
+  TI_ARRAY     = 24,
+  TI_OBJECT    = 32
+};
+
 class Stringifier: public node::ObjectWrap {
   public:
     friend class StringifierTarget;
@@ -25,6 +37,7 @@ class Stringifier: public node::ObjectWrap {
       }
     };
 
+    inline static int getTypeid(v8::Local<v8::Value> x);
     inline const StringifyConnector* findConnector(v8::Local<v8::Object>) const;
 
     static v8::Persistent<v8::Function> constructor;
@@ -35,6 +48,7 @@ class Stringifier: public node::ObjectWrap {
 
     static NAN_METHOD(New);
     static NAN_METHOD(Escape);
+    static NAN_METHOD(GetTypeid);
     static NAN_METHOD(Stringify);
     static NAN_METHOD(ConnectorOfValue);
 
@@ -56,6 +70,28 @@ const Stringifier::StringifyConnector* Stringifier::findConnector(v8::Local<v8::
     }
   }
   return NULL;
+}
+
+int Stringifier::getTypeid(v8::Local<v8::Value> x) {
+  if (x->IsString()) {
+    return TI_STRING;
+  } else if (x->IsNumber()) {
+    return TI_NUMBER;
+  } else if (x->IsUndefined()) {
+    return TI_UNDEFINED;
+  } else if (x->IsNull()) {
+    return TI_NULL;
+  } else if (x->IsBoolean()) {
+    return TI_BOOLEAN;
+  } else if (x->IsDate()) {
+    return TI_DATE;
+  } else if (x->IsArray()) {
+    return TI_ARRAY;
+  } else if (x->IsObject()) {
+    return TI_OBJECT;
+  } else {
+    return TI_FAIL;
+  }
 }
 
 

@@ -238,7 +238,7 @@ NAN_METHOD(Parser::ConnectorOfCname) {
     result = NanNull();
   }
   NanReturnValue(result);
-}  
+}
 
 void Parser::Init(v8::Handle<v8::Object> exports) {
   NanScope();

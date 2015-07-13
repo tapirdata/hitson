@@ -18,13 +18,14 @@ factory = (options) ->
   parser = new wson.Parser ParseError, options
   escape: (s) -> stringifier.escape s
   unescape: (s) -> parser.unescape s
+  getTypeid: (x) -> stringifier.getTypeid x
   stringify: (x, options) ->
     stringifier.stringify x, options.haverefCb
   parse: (s, options) ->
     parser.parse s, options.backrefCb
   parsePartial: (s, options) ->
     parser.parsePartial s, options.howNext, options.cb, options.backrefCb
-  connectorOfCname: (cname) -> parser.connectorOfCname cname  
+  connectorOfCname: (cname) -> parser.connectorOfCname cname
   connectorOfValue: (value) -> stringifier.connectorOfValue value
 
 factory.ParseError = ParseError
