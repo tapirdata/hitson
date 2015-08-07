@@ -69,7 +69,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
     case TI_DATE:
       target.push('#');
       target.push('d');
-      target.appendHandle(NanNew<v8::Number>(x->NumberValue())->ToString());
+      target.appendHandle(Nan::New<v8::Number>(x->NumberValue())->ToString());
       break;
     case TI_STRING:
       putText(x.As<v8::String>());
@@ -106,9 +106,9 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
         target.append(connector->name.getBuffer());
         const int argc = 1;
         v8::Local<v8::Value> argv[argc] = {x};
-        v8::Local<v8::Function> split = NanNew<v8::Function>(connector->split);
+        v8::Local<v8::Function> split = Nan::New<v8::Function>(connector->split);
         if (!split.IsEmpty()) {
-          v8::Local<v8::Value> args = split->Call(NanNew<v8::Object>(connector->self), argc, argv);
+          v8::Local<v8::Value> args = split->Call(Nan::New<v8::Object>(connector->self), argc, argv);
           if (!args.IsEmpty() && args->IsArray()) {
             v8::Local<v8::Array> argsArray = args.As<v8::Array>();
             uint32_t len = argsArray->Length();

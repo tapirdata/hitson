@@ -31,7 +31,7 @@ class ParserSource {
     ~ParserSource() {
       // std::cout << "ParserSource::~ParserSource" << std::endl;
     }
-    void init(v8::Local<v8::String> s, NanCallback* brCb) {
+    void init(v8::Local<v8::String> s, Nan::Callback* brCb) {
       hasError=false;
       source.init(s);
       backrefCb = brCb;
@@ -54,7 +54,7 @@ class ParserSource {
     SourceBuffer source;
     bool hasError;
     v8::Local<v8::Object> error;
-    NanCallback* backrefCb;
+    Nan::Callback* backrefCb;
 };
 
 

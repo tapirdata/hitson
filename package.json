@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "bindings": "~1.2.1",
-    "nan": "^1.8.4"
+    "nan": "2.0.4"
   },
   "devDependencies": {
     "chai": "^3.0.0",

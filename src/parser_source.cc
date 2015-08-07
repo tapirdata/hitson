@@ -9,12 +9,12 @@ inline bool getNumber(const std::string& s, v8::Handle<v8::Value>& value) {
   char* end;
   int x = strtol(begin, &end, 10);
   if (end == begin + s.size()) {
-    value = NanNew<v8::Number>(x);
+    value = Nan::New<v8::Number>(x);
     return true;
   } else {
     double x = strtod(begin, &end);
     if (end == begin + s.size()) {
-      value = NanNew<v8::Number>(x);
+      value = Nan::New<v8::Number>(x);
       return true;
     }
   }
@@ -27,7 +27,7 @@ inline bool getDate(const std::string& s, v8::Handle<v8::Value>& value) {
   char* end;
   double x = strtod(begin + 1, &end);
   if (end == begin + s.size()) {
-    value = NanNew<v8::Date>(x);
+    value = Nan::New<v8::Date>(x);
     return true;
   }
   return false;
@@ -48,7 +48,7 @@ v8::Handle<v8::String> ParserSource::getText() {
  int err = source.pullUnescapedBuffer();
  if (err) {
    makeError();
-   return NanNew(Parser::sEmpty);
+   return Nan::New(Parser::sEmpty);
  }
  return source.nextBuffer.getHandle();
 }
@@ -103,13 +103,13 @@ v8::Handle<v8::Value> ParserSource::getLiteral() {
       makeError(litBeginIdx, &msg);
     }
   } else {
-    value = NanNew(Parser::sEmpty);
+    value = Nan::New(Parser::sEmpty);
   }
   return value;
 }
 
 v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
-  v8::Handle<v8::Object> value = NanNew<v8::Object>();
+  v8::Handle<v8::Object> value = Nan::New<v8::Object>();
   bool refErr = false;
   size_t refBeginIdx = source.nextIdx - 1;
   Ctype nextType = source.nextType;
@@ -133,7 +133,7 @@ v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
             idxFrame = parentIdxFrame;
           } else if (backrefCb) {
             v8::Handle<v8::Value> cbArgv[] = {
-              NanNew<v8::Number>(refIdx)
+              Nan::New<v8::Number>(refIdx)
             };
             v8::Handle<v8::Value> brValue = backrefCb->Call(1, cbArgv);
             if (brValue->IsObject()) {
@@ -181,7 +181,7 @@ v8::Handle<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
     return getCustom(parentFrame);
   }
 
-  v8::Local<v8::Array> value = NanNew<v8::Array>();
+  v8::Local<v8::Array> value = Nan::New<v8::Array>();
   ParseFrame frame(value, parentFrame);
   if (hasError) goto end;
   switch (source.nextType) {
@@ -242,7 +242,7 @@ end:
 }
 
 v8::Handle<v8::Object> ParserSource::getObject(ParseFrame* parentFrame) {
-  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
+  ParseFrame frame(Nan::New<v8::Object>(), parentFrame);
   v8::Handle<v8::String> key;
   if (hasError) goto end;
 
@@ -263,7 +263,7 @@ stageNext:
       goto stageHaveKey;
     case LITERAL:
       next();
-      key = NanNew<v8::String>();
+      key = Nan::New<v8::String>();
       goto stageHaveKey;
     default:
       makeError();
@@ -339,8 +339,8 @@ end:
 v8::Handle<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   // std::cout << "getCustom" << std::endl;
   bool stolenBackref = false;
-  ParseFrame frame(NanNew<v8::Object>(), parentFrame);
-  v8::Local<v8::Array> args = NanNew<v8::Array>();
+  ParseFrame frame(Nan::New<v8::Object>(), parentFrame);
+  v8::Local<v8::Array> args = Nan::New<v8::Array>();
   const Parser::ParseConnector* connector(NULL);
   size_t nameIdx = source.nextIdx - 1; // for error
   if (hasError) goto end;
@@ -364,10 +364,10 @@ v8::Handle<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
         if (connector->hasCreate) {
           frame.vetoBackref = true;
         } else {
-          v8::Local<v8::Function> precreate = NanNew<v8::Function>(connector->precreate);
+          v8::Local<v8::Function> precreate = Nan::New<v8::Function>(connector->precreate);
           const int argc = 0;
           v8::Local<v8::Value> argv[argc] = {};
-          frame.value = precreate->Call(NanNew<v8::Object>(connector->self), argc, argv).As<v8::Object>();
+          frame.value = precreate->Call(Nan::New<v8::Object>(connector->self), argc, argv).As<v8::Object>();
           // std::cout << "precreate" << std::endl;
         }
       }
@@ -413,16 +413,16 @@ stageHave:
       next();
       {
         if (connector->hasCreate) {
-          v8::Local<v8::Function> create = NanNew<v8::Function>(connector->create);
+          v8::Local<v8::Function> create = Nan::New<v8::Function>(connector->create);
           const int argc = 1;
           v8::Local<v8::Value> argv[argc] = {args};
-          frame.value = create->Call(NanNew<v8::Object>(connector->self), argc, argv).As<v8::Object>();
+          frame.value = create->Call(Nan::New<v8::Object>(connector->self), argc, argv).As<v8::Object>();
           // std::cout << "create" << std::endl;
         } else {
-          v8::Local<v8::Function> postcreate = NanNew<v8::Function>(connector->postcreate);
+          v8::Local<v8::Function> postcreate = Nan::New<v8::Function>(connector->postcreate);
           const int argc = 2;
           v8::Local<v8::Value> argv[argc] = {frame.value, args};
-          v8::Local<v8::Value> newValue = postcreate->Call(NanNew<v8::Object>(connector->self), argc, argv);
+          v8::Local<v8::Value> newValue = postcreate->Call(Nan::New<v8::Object>(connector->self), argc, argv);
           if (newValue->IsObject()) {
             if (newValue != frame.value) {
               if (frame.isBackreffed) {
@@ -483,7 +483,7 @@ v8::Handle<v8::Value> ParserSource::getValue(bool* isValue) {
     default:
       if (isValue) {
         *isValue = false;
-        value = NanNew<v8::String>(&source.nextChar, 1);
+        value = Nan::New<v8::String>(&source.nextChar, 1);
         next();
       } else {
         makeError();
@@ -504,7 +504,7 @@ v8::Handle<v8::Value> ParserSource::getRawValue(bool* isValue) {
       break;
     default:
       *isValue = false;
-      value = NanNew<v8::String>(&source.nextChar, 1);
+      value = Nan::New<v8::String>(&source.nextChar, 1);
       next();
   }
   return value;
@@ -520,11 +520,11 @@ void ParserSource::makeError(int pos, const BaseBuffer* cause) {
   if (cause) {
     hCause = cause->getHandle();
   } else {
-    hCause = NanNew(Parser::sEmpty);
+    hCause = Nan::New(Parser::sEmpty);
   }
   v8::Local<v8::Value> argv[argc] = {
     source.getHandle(),
-    NanNew<v8::Number>(pos),
+    Nan::New<v8::Number>(pos),
     hCause
   };
   error = parser_.createError(argc, argv);

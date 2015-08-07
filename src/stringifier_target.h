@@ -36,7 +36,7 @@ class StringifierTarget {
     inline bool putBackref(v8::Local<v8::Object> x);
     inline void putValue(v8::Local<v8::Value>);
 
-    inline void clear(NanCallback* aHaverefCb) {
+    inline void clear(Nan::Callback* aHaverefCb) {
       target.clear();
       haves.clear();
       haverefCb = aHaverefCb;
@@ -50,7 +50,7 @@ class StringifierTarget {
 
     TargetBuffer target;
     handleVector haves;
-    NanCallback* haverefCb;
+    Nan::Callback* haverefCb;
 
   private:
     Stringifier& stringifier_;

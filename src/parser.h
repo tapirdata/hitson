@@ -24,10 +24,10 @@ class Parser: public node::ObjectWrap {
       bool hasCreate;
 
       ~ParseConnector() {
-        NanDisposePersistent(self);
-        NanDisposePersistent(create);
-        NanDisposePersistent(precreate);
-        NanDisposePersistent(postcreate);
+        Nan::DisposePersistent(self);
+        Nan::DisposePersistent(create);
+        Nan::DisposePersistent(precreate);
+        Nan::DisposePersistent(postcreate);
       }
     };
 

@@ -13,7 +13,7 @@ using v8::FunctionTemplate;
 
 Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options) {
   NanAssignPersistent(errorClass_, errorClass);
-  Local<Value> conDefsValue = options->Get(NanNew("connectors"));
+  Local<Value> conDefsValue = options->Get(Nan::New("connectors"));
   if (conDefsValue->IsObject()) {
     Local<Object> conDefs = conDefsValue.As<Object>();
     v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames();
@@ -24,18 +24,18 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options) {
       Local<Object> conDef = conDefs->Get(name).As<Object>();
       ParseConnector *connector = new ParseConnector();
       NanAssignPersistent(connector->self, conDef);
-      Local<Value> hasCreateValue = conDef->Get(NanNew("hasCreate"));
+      Local<Value> hasCreateValue = conDef->Get(Nan::New("hasCreate"));
       connector->hasCreate = hasCreateValue->IsBoolean() && hasCreateValue->BooleanValue();
       if (connector->hasCreate) {
         NanAssignPersistent(connector->create,
-          conDef->Get(NanNew(sCreate)).As<Function>()
+          conDef->Get(Nan::New(sCreate)).As<Function>()
         );
       } else {
         NanAssignPersistent(connector->precreate,
-          conDef->Get(NanNew(sPrecreate)).As<Function>()
+          conDef->Get(Nan::New(sPrecreate)).As<Function>()
         );
         NanAssignPersistent(connector->postcreate,
-          conDef->Get(NanNew(sPostcreate)).As<Function>()
+          conDef->Get(Nan::New(sPostcreate)).As<Function>()
         );
       }
       // std::cout << i << " hasCreate=" << connector.hasCreate << std::endl;
@@ -99,7 +99,7 @@ NAN_METHOD(Parser::New) {
   } else {
     const int argc = 2;
     Local<Value> argv[argc] = {errorClass, errorClass};
-    Local<Function> cons = NanNew<Function>(constructor);
+    Local<Function> cons = Nan::New<Function>(constructor);
     NanReturnValue(cons->NewInstance(argc, argv));
   }
 }
@@ -116,7 +116,7 @@ NAN_METHOD(Parser::Unescape) {
   int errPos = target.appendHandleUnescaped(s);
   if (errPos >= 0) {
     const int argc = 2;
-    v8::Local<v8::Value> argv[argc] = { s, NanNew<v8::Number>(errPos) };
+    v8::Local<v8::Value> argv[argc] = { s, Nan::New<v8::Number>(errPos) };
     return NanThrowError(self->createError(argc, argv));
   }
   NanReturnValue(target.getHandle());
@@ -206,9 +206,9 @@ NAN_METHOD(Parser::ParsePartial) {
     }
     size_t pos = ps->getPos();
     v8::Handle<Value> cbArgv[] = {
-      NanNew(isValue),
+      Nan::New(isValue),
       result,
-      NanNew<v8::Number>(pos)
+      Nan::New<v8::Number>(pos)
     };
     howNext = cb->Call(3, cbArgv);
   }
@@ -216,7 +216,7 @@ NAN_METHOD(Parser::ParsePartial) {
   delete cb;
   delete backrefCb;
   if (error.IsEmpty()) {
-    NanReturnValue(NanNew<v8::Boolean>(!reqAbort));
+    NanReturnValue(Nan::New<v8::Boolean>(!reqAbort));
   } else {
     return NanThrowError(error);
   }
@@ -233,7 +233,7 @@ NAN_METHOD(Parser::ConnectorOfCname) {
   const ParseConnector* connector = self->getConnector(name.getBuffer());
   Handle<Value> result;
   if (connector) {
-    result = NanNew<Object>(connector->self);
+    result = Nan::New<Object>(connector->self);
   } else {
     result = NanNull();
   }
@@ -243,8 +243,8 @@ NAN_METHOD(Parser::ConnectorOfCname) {
 void Parser::Init(v8::Handle<v8::Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> newTpl = NanNew<FunctionTemplate>(New);
-  newTpl->SetClassName(NanNew("Parser"));
+  Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);
+  newTpl->SetClassName(Nan::New("Parser"));
   newTpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(newTpl, "unescape", Unescape);
@@ -253,17 +253,17 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(newTpl, "connectorOfCname", ConnectorOfCname);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
-  NanAssignPersistent(sEmpty, NanNew(""));
-  NanAssignPersistent(sCreate, NanNew("create"));
-  NanAssignPersistent(sPrecreate, NanNew("precreate"));
-  NanAssignPersistent(sPostcreate, NanNew("postcreate"));
+  NanAssignPersistent(sEmpty, Nan::New(""));
+  NanAssignPersistent(sCreate, Nan::New("create"));
+  NanAssignPersistent(sPrecreate, Nan::New("precreate"));
+  NanAssignPersistent(sPostcreate, Nan::New("postcreate"));
 
-  exports->Set(NanNew("Parser"), newTpl->GetFunction());
+  exports->Set(Nan::New("Parser"), newTpl->GetFunction());
 }
 
 
 Local<Object> Parser::createError(int argc, Local<Value> *argv) const {
-  return NanNew<v8::Function>(errorClass_)->NewInstance(argc, argv);
+  return Nan::New<v8::Function>(errorClass_)->NewInstance(argc, argv);
 }
 
 

@@ -31,9 +31,9 @@ class Stringifier: public node::ObjectWrap {
       TargetBuffer name;
 
       ~StringifyConnector() {
-        NanDisposePersistent(self);
-        NanDisposePersistent(by);
-        NanDisposePersistent(split);
+        Nan::DisposePersistent(self);
+        Nan::DisposePersistent(by);
+        Nan::DisposePersistent(split);
       }
     };
 
@@ -60,7 +60,7 @@ class Stringifier: public node::ObjectWrap {
 };
 
 const Stringifier::StringifyConnector* Stringifier::findConnector(v8::Local<v8::Object> x) const {
-  v8::Local<v8::Value> constructor = x->Get(NanNew(sConstructor));
+  v8::Local<v8::Value> constructor = x->Get(Nan::New(sConstructor));
   if (constructor->IsFunction() and constructor != objectConstructor) {
     for (ConnectorVector::const_iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
       // std::cout << "findConnector" << std::endl;

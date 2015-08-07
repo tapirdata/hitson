@@ -12,7 +12,7 @@ using v8::FunctionTemplate;
 
 Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> options): st_(*this) {
   NanAssignPersistent(errorClass_, errorClass);
-  Local<Value> conDefsValue = options->Get(NanNew("connectors"));
+  Local<Value> conDefsValue = options->Get(Nan::New("connectors"));
   if (conDefsValue->IsObject()) {
     Local<Object> conDefs = conDefsValue.As<Object>();
     v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames();
@@ -24,10 +24,10 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
       StringifyConnector* connector = new StringifyConnector();
       NanAssignPersistent(connector->self, conDef);
       NanAssignPersistent(connector->by,
-        conDef->Get(NanNew(sBy)).As<Function>()
+        conDef->Get(Nan::New(sBy)).As<Function>()
       );
       NanAssignPersistent(connector->split,
-        conDef->Get(NanNew(sSplit)).As<Function>()
+        conDef->Get(Nan::New(sSplit)).As<Function>()
       );
       connector->name.appendHandleEscaped(name);
       connectors_[i] = connector;
@@ -67,7 +67,7 @@ NAN_METHOD(Stringifier::New) {
   } else {
     const int argc = 2;
     Local<Value> argv[argc] = {errorClass, options};
-    Local<Function> cons = NanNew<Function>(constructor);
+    Local<Function> cons = Nan::New<Function>(constructor);
     NanReturnValue(cons->NewInstance(argc, argv));
   }
 }
@@ -91,7 +91,7 @@ NAN_METHOD(Stringifier::GetTypeid) {
     return NanThrowTypeError("Missing argument");
   }
   int ti = getTypeid(args[0]);
-  NanReturnValue(NanNew<v8::Number>(ti));
+  NanReturnValue(Nan::New<v8::Number>(ti));
 }
 
 
@@ -129,7 +129,7 @@ NAN_METHOD(Stringifier::ConnectorOfValue) {
   }
   Handle<Value> result;
   if (connector) {
-    result = NanNew<Object>(connector->self);
+    result = Nan::New<Object>(connector->self);
   } else {
     result = NanNull();
   }
@@ -139,8 +139,8 @@ NAN_METHOD(Stringifier::ConnectorOfValue) {
 void Stringifier::Init(Handle<Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> newTpl = NanNew<FunctionTemplate>(New);
-  newTpl->SetClassName(NanNew("Stringifier"));
+  Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);
+  newTpl->SetClassName(Nan::New("Stringifier"));
   newTpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(newTpl, "escape", Escape);
@@ -149,14 +149,14 @@ void Stringifier::Init(Handle<Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(newTpl, "connectorOfValue", ConnectorOfValue);
 
   NanAssignPersistent(constructor, newTpl->GetFunction());
-  NanAssignPersistent(sBy, NanNew("by"));
-  NanAssignPersistent(sSplit, NanNew("split"));
-  NanAssignPersistent(sConstructor, NanNew("constructor"));
+  NanAssignPersistent(sBy, Nan::New("by"));
+  NanAssignPersistent(sSplit, Nan::New("split"));
+  NanAssignPersistent(sConstructor, Nan::New("constructor"));
   NanAssignPersistent(objectConstructor,
-    NanNew<Object>()->Get(NanNew(sConstructor)).As<Function>()
+    Nan::New<Object>()->Get(Nan::New(sConstructor)).As<Function>()
   );
 
-  exports->Set(NanNew("Stringifier"), newTpl->GetFunction());
+  exports->Set(Nan::New("Stringifier"), newTpl->GetFunction());
 
   StringifierTarget::Init();
 }
