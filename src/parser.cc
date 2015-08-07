@@ -3,7 +3,6 @@
 
 using v8::Local;
 using v8::Handle;
-using v8::Persistent;
 using v8::Value;
 using v8::String;
 using v8::Object;
@@ -12,8 +11,8 @@ using v8::FunctionTemplate;
 
 
 Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options) {
-  NanAssignPersistent(errorClass_, errorClass);
-  Local<Value> conDefsValue = options->Get(Nan::New("connectors"));
+  errorClass_.Reset(errorClass);
+  Local<Value> conDefsValue = options->Get(Nan::New("connectors").ToLocalChecked());
   if (conDefsValue->IsObject()) {
     Local<Object> conDefs = conDefsValue.As<Object>();
     v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames();
@@ -23,18 +22,18 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options) {
       Local<String> name = names->Get(i).As<v8::String>();
       Local<Object> conDef = conDefs->Get(name).As<Object>();
       ParseConnector *connector = new ParseConnector();
-      NanAssignPersistent(connector->self, conDef);
-      Local<Value> hasCreateValue = conDef->Get(Nan::New("hasCreate"));
+      connector->self.Reset(conDef);
+      Local<Value> hasCreateValue = conDef->Get(Nan::New("hasCreate").ToLocalChecked());
       connector->hasCreate = hasCreateValue->IsBoolean() && hasCreateValue->BooleanValue();
       if (connector->hasCreate) {
-        NanAssignPersistent(connector->create,
+        connector->create.Reset(
           conDef->Get(Nan::New(sCreate)).As<Function>()
         );
       } else {
-        NanAssignPersistent(connector->precreate,
+        connector->precreate.Reset(
           conDef->Get(Nan::New(sPrecreate)).As<Function>()
         );
-        NanAssignPersistent(connector->postcreate,
+        connector->postcreate.Reset(
           conDef->Get(Nan::New(sPostcreate)).As<Function>()
         );
       }
@@ -48,7 +47,7 @@ Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options) {
 
 Parser::~Parser() {
   // std::cout << "Parser::~Parser" << std::endl;
-  NanDisposePersistent(errorClass_);
+  errorClass_.Reset();
   for (ConnectorMap::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
     delete it->second;
   }
@@ -76,105 +75,105 @@ void Parser::releasePs(ParserSource* ps) {
 }
 
 
-Persistent<Function> Parser::constructor;
-Persistent<String> Parser::sEmpty;
-Persistent<String> Parser::sCreate;
-Persistent<String> Parser::sPrecreate;
-Persistent<String> Parser::sPostcreate;
+Nan::Persistent<Function> Parser::constructor;
+Nan::Persistent<String> Parser::sEmpty;
+Nan::Persistent<String> Parser::sCreate;
+Nan::Persistent<String> Parser::sPrecreate;
+Nan::Persistent<String> Parser::sPostcreate;
 
 NAN_METHOD(Parser::New) {
-  NanScope();
-  if (args.Length() < 1 || !(args[0]->IsFunction())) {
-    return NanThrowTypeError("First argument should be an error constructor");
+  Nan::HandleScope();
+  if (info.Length() < 1 || !(info[0]->IsFunction())) {
+    return Nan::ThrowTypeError("First argument should be an error constructor");
   }
-  if (args.Length() < 2 || !(args[0]->IsObject())) {
-    return NanThrowTypeError("Second argument should be an option object");
+  if (info.Length() < 2 || !(info[0]->IsObject())) {
+    return Nan::ThrowTypeError("Second argument should be an option object");
   }
-  Local<Function> errorClass = args[0].As<Function>();
-  Local<Object> options = args[1].As<Object>();
-  if (args.IsConstructCall()) {
+  Local<Function> errorClass = info[0].As<Function>();
+  Local<Object> options = info[1].As<Object>();
+  if (info.IsConstructCall()) {
     Parser* obj = new Parser(errorClass, options);
-    obj->Wrap(args.This());
-    NanReturnValue(args.This());
+    obj->Wrap(info.This());
+    info.GetReturnValue().Set(info.This());
   } else {
     const int argc = 2;
     Local<Value> argv[argc] = {errorClass, errorClass};
     Local<Function> cons = Nan::New<Function>(constructor);
-    NanReturnValue(cons->NewInstance(argc, argv));
+    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
   }
 }
 
 NAN_METHOD(Parser::Unescape) {
-  NanScope();
+  Nan::HandleScope();
   TargetBuffer target;
-  if (args.Length() < 1 || !(args[0]->IsString())) {
-    return NanThrowTypeError("First argument should be a string");
+  if (info.Length() < 1 || !(info[0]->IsString())) {
+    return Nan::ThrowTypeError("First argument should be a string");
   }
-  v8::Local<v8::String> s = args[0].As<v8::String>();
+  v8::Local<v8::String> s = info[0].As<v8::String>();
 
-  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(info.This());
   int errPos = target.appendHandleUnescaped(s);
   if (errPos >= 0) {
     const int argc = 2;
     v8::Local<v8::Value> argv[argc] = { s, Nan::New<v8::Number>(errPos) };
-    return NanThrowError(self->createError(argc, argv));
+    return Nan::ThrowError(self->createError(argc, argv));
   }
-  NanReturnValue(target.getHandle());
+  info.GetReturnValue().Set(target.getHandle());
 }
 
 
 NAN_METHOD(Parser::Parse) {
-  NanScope();
-  if (args.Length() < 1 || !(args[0]->IsString())) {
-    return NanThrowTypeError("First argument should be a string");
+  Nan::HandleScope();
+  if (info.Length() < 1 || !(info[0]->IsString())) {
+    return Nan::ThrowTypeError("First argument should be a string");
   }
-  Local<String> s = args[0].As<String>();
+  Local<String> s = info[0].As<String>();
 
-  NanCallback *backrefCb = NULL;
-  if (args.Length() >= 2 && (args[1]->IsFunction())) {
-    Local<Function> backrefCbHandle = args[1].As<Function>();
-    backrefCb = new NanCallback(backrefCbHandle);
+  Nan::Callback *backrefCb = NULL;
+  if (info.Length() >= 2 && (info[1]->IsFunction())) {
+    Local<Function> backrefCbHandle = info[1].As<Function>();
+    backrefCb = new Nan::Callback(backrefCbHandle);
   }
 
-  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(info.This());
   ParserSource *ps = self->acquirePs();
   ps->init(s, backrefCb);
-  Handle<Value> result = ps->getValue(NULL);
+  Local<Value> result = ps->getValue(NULL);
   self->releasePs(ps);
   delete backrefCb;
   if (ps->hasError) {
-    return NanThrowError(ps->error);
+    return Nan::ThrowError(ps->error);
   } else {
-    NanReturnValue(result);
+    info.GetReturnValue().Set(result);
   }
 }
 
 NAN_METHOD(Parser::ParsePartial) {
-  NanScope();
-  if (args.Length() < 1 || !(args[0]->IsString())) {
-    return NanThrowTypeError("First argument should be a string");
+  Nan::HandleScope();
+  if (info.Length() < 1 || !(info[0]->IsString())) {
+    return Nan::ThrowTypeError("First argument should be a string");
   }
-  if (args.Length() < 3 || !(args[2]->IsFunction())) {
-    return NanThrowTypeError("Second argument should be a function");
-  }
-
-  Local<String> s = args[0].As<String>();
-  Handle<Value> howNext = args[1];
-
-  Local<Function> cbHandle = args[2].As<Function>();
-  NanCallback *cb = new NanCallback(cbHandle);
-
-  NanCallback *backrefCb = NULL;
-  if (args.Length() >= 4 && (args[3]->IsFunction())) {
-    Local<Function> backrefCbHandle = args[3].As<Function>();
-    backrefCb = new NanCallback(backrefCbHandle);
+  if (info.Length() < 3 || !(info[2]->IsFunction())) {
+    return Nan::ThrowTypeError("Second argument should be a function");
   }
 
-  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
+  Local<String> s = info[0].As<String>();
+  Handle<Value> howNext = info[1];
+
+  Local<Function> cbHandle = info[2].As<Function>();
+  Nan::Callback *cb = new Nan::Callback(cbHandle);
+
+  Nan::Callback *backrefCb = NULL;
+  if (info.Length() >= 4 && (info[3]->IsFunction())) {
+    Local<Function> backrefCbHandle = info[3].As<Function>();
+    backrefCb = new Nan::Callback(backrefCbHandle);
+  }
+
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(info.This());
   ParserSource *ps = self->acquirePs();
   ps->init(s, backrefCb);
   bool reqAbort = false;
-  Handle<Value> error;
+  Local<Value> error;
   while (true) {
     Handle<Value> nextRaw;
     if (howNext->IsArray()) {
@@ -205,7 +204,7 @@ NAN_METHOD(Parser::ParsePartial) {
       break;
     }
     size_t pos = ps->getPos();
-    v8::Handle<Value> cbArgv[] = {
+    v8::Local<Value> cbArgv[] = {
       Nan::New(isValue),
       result,
       Nan::New<v8::Number>(pos)
@@ -216,53 +215,53 @@ NAN_METHOD(Parser::ParsePartial) {
   delete cb;
   delete backrefCb;
   if (error.IsEmpty()) {
-    NanReturnValue(Nan::New<v8::Boolean>(!reqAbort));
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(!reqAbort));
   } else {
-    return NanThrowError(error);
+    return Nan::ThrowError(error);
   }
 }
 
 NAN_METHOD(Parser::ConnectorOfCname) {
-  NanScope();
-  if (args.Length() < 1 || !(args[0]->IsString())) {
-    return NanThrowTypeError("First argument should be a string");
+  Nan::HandleScope();
+  if (info.Length() < 1 || !(info[0]->IsString())) {
+    return Nan::ThrowTypeError("First argument should be a string");
   }
-  Parser* self = node::ObjectWrap::Unwrap<Parser>(args.This());
+  Parser* self = node::ObjectWrap::Unwrap<Parser>(info.This());
   BaseBuffer name;
-  name.appendHandle(args[0].As<String>());
+  name.appendHandle(info[0].As<String>());
   const ParseConnector* connector = self->getConnector(name.getBuffer());
-  Handle<Value> result;
+  Local<Value> result;
   if (connector) {
     result = Nan::New<Object>(connector->self);
   } else {
-    result = NanNull();
+    result = Nan::Null();
   }
-  NanReturnValue(result);
+  info.GetReturnValue().Set(result);
 }
 
 void Parser::Init(v8::Handle<v8::Object> exports) {
-  NanScope();
+  Nan::HandleScope();
 
   Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);
-  newTpl->SetClassName(Nan::New("Parser"));
+  newTpl->SetClassName(Nan::New("Parser").ToLocalChecked());
   newTpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "unescape", Unescape);
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "parse", Parse);
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "parsePartial", ParsePartial);
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "connectorOfCname", ConnectorOfCname);
+  Nan::SetPrototypeMethod(newTpl, "unescape", Unescape);
+  Nan::SetPrototypeMethod(newTpl, "parse", Parse);
+  Nan::SetPrototypeMethod(newTpl, "parsePartial", ParsePartial);
+  Nan::SetPrototypeMethod(newTpl, "connectorOfCname", ConnectorOfCname);
 
-  NanAssignPersistent(constructor, newTpl->GetFunction());
-  NanAssignPersistent(sEmpty, Nan::New(""));
-  NanAssignPersistent(sCreate, Nan::New("create"));
-  NanAssignPersistent(sPrecreate, Nan::New("precreate"));
-  NanAssignPersistent(sPostcreate, Nan::New("postcreate"));
+  constructor.Reset(newTpl->GetFunction());
+  sEmpty.Reset(Nan::New("").ToLocalChecked());
+  sCreate.Reset(Nan::New("create").ToLocalChecked());
+  sPrecreate.Reset(Nan::New("precreate").ToLocalChecked());
+  sPostcreate.Reset(Nan::New("postcreate").ToLocalChecked());
 
-  exports->Set(Nan::New("Parser"), newTpl->GetFunction());
+  exports->Set(Nan::New("Parser").ToLocalChecked(), newTpl->GetFunction());
 }
 
 
-Local<Object> Parser::createError(int argc, Local<Value> *argv) const {
+Local<Value> Parser::createError(int argc, Local<Value> *argv) const {
   return Nan::New<v8::Function>(errorClass_)->NewInstance(argc, argv);
 }
 

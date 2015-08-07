@@ -11,8 +11,8 @@ using v8::FunctionTemplate;
 
 
 Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> options): st_(*this) {
-  NanAssignPersistent(errorClass_, errorClass);
-  Local<Value> conDefsValue = options->Get(Nan::New("connectors"));
+  errorClass_.Reset(errorClass);
+  Local<Value> conDefsValue = options->Get(Nan::New("connectors").ToLocalChecked());
   if (conDefsValue->IsObject()) {
     Local<Object> conDefs = conDefsValue.As<Object>();
     v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames();
@@ -22,11 +22,11 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
       Local<String> name = names->Get(i).As<v8::String>();
       Local<Object> conDef = conDefs->Get(name).As<Object>();
       StringifyConnector* connector = new StringifyConnector();
-      NanAssignPersistent(connector->self, conDef);
-      NanAssignPersistent(connector->by,
+      connector->self.Reset(conDef);
+      connector->by.Reset(
         conDef->Get(Nan::New(sBy)).As<Function>()
       );
-      NanAssignPersistent(connector->split,
+      connector->split.Reset(
         conDef->Get(Nan::New(sSplit)).As<Function>()
       );
       connector->name.appendHandleEscaped(name);
@@ -37,126 +37,126 @@ Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> optio
 };
 
 Stringifier::~Stringifier() {
-  NanDisposePersistent(errorClass_);
+  errorClass_.Reset();
   for (ConnectorVector::iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
     delete (*it);
   }
   connectors_.clear();
 };
 
-v8::Persistent<v8::Function> Stringifier::constructor;
-v8::Persistent<v8::String> Stringifier::sBy;
-v8::Persistent<v8::String> Stringifier::sSplit;
-v8::Persistent<v8::String> Stringifier::sConstructor;
-v8::Persistent<v8::Function> Stringifier::objectConstructor;
+Nan::Persistent<v8::Function> Stringifier::constructor;
+Nan::Persistent<v8::String> Stringifier::sBy;
+Nan::Persistent<v8::String> Stringifier::sSplit;
+Nan::Persistent<v8::String> Stringifier::sConstructor;
+Nan::Persistent<v8::Function> Stringifier::objectConstructor;
 
 NAN_METHOD(Stringifier::New) {
-  NanScope();
-  if (args.Length() < 1 || !(args[0]->IsFunction())) {
-    return NanThrowTypeError("First argument should be an error constructor");
+  Nan::HandleScope();
+  if (info.Length() < 1 || !(info[0]->IsFunction())) {
+    return Nan::ThrowTypeError("First argument should be an error constructor");
   }
-  if (args.Length() < 2 || !(args[0]->IsObject())) {
-    return NanThrowTypeError("Second argument should be an option object");
+  if (info.Length() < 2 || !(info[0]->IsObject())) {
+    return Nan::ThrowTypeError("Second argument should be an option object");
   }
-  Local<Function> errorClass = args[0].As<Function>();
-  Local<Object> options = args[1].As<Object>();
-  if (args.IsConstructCall()) {
+  Local<Function> errorClass = info[0].As<Function>();
+  Local<Object> options = info[1].As<Object>();
+  if (info.IsConstructCall()) {
     Stringifier* obj = new Stringifier(errorClass, options);
-    obj->Wrap(args.This());
-    NanReturnValue(args.This());
+    obj->Wrap(info.This());
+    info.GetReturnValue().Set(info.This());
   } else {
     const int argc = 2;
     Local<Value> argv[argc] = {errorClass, options};
     Local<Function> cons = Nan::New<Function>(constructor);
-    NanReturnValue(cons->NewInstance(argc, argv));
+    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
   }
 }
 
 NAN_METHOD(Stringifier::Escape) {
-  NanScope();
+  Nan::HandleScope();
   TargetBuffer target;
-  if (args.Length() < 1 || !(args[0]->IsString())) {
-    return NanThrowTypeError("First argument should be a string");
+  if (info.Length() < 1 || !(info[0]->IsString())) {
+    return Nan::ThrowTypeError("First argument should be a string");
   }
-  v8::Local<v8::String> s = args[0].As<v8::String>();
-  // Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(args.This());
+  v8::Local<v8::String> s = info[0].As<v8::String>();
+  // Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(info.This());
   target.appendHandleEscaped(s);
-  NanReturnValue(target.getHandle());
+  info.GetReturnValue().Set(target.getHandle());
 }
 
 
 NAN_METHOD(Stringifier::GetTypeid) {
-  NanScope();
-  if (args.Length() < 1) {
-    return NanThrowTypeError("Missing argument");
+  Nan::HandleScope();
+  if (info.Length() < 1) {
+    return Nan::ThrowTypeError("Missing argument");
   }
-  int ti = getTypeid(args[0]);
-  NanReturnValue(Nan::New<v8::Number>(ti));
+  int ti = getTypeid(info[0]);
+  info.GetReturnValue().Set(Nan::New<v8::Number>(ti));
 }
 
 
 NAN_METHOD(Stringifier::Stringify) {
-  NanScope();
-  Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(args.This());
+  Nan::HandleScope();
+  Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(info.This());
   StringifierTarget &st = self->st_;
-  if (args.Length() < 1) {
-    return NanThrowTypeError("Missing first argument");
+  if (info.Length() < 1) {
+    return Nan::ThrowTypeError("Missing first argument");
   }
 
-  NanCallback *haverefCb = NULL;
-  if (args.Length() >= 2 && (args[1]->IsFunction())) {
-    Local<Function> haveCbHandle = args[1].As<Function>();
-    haverefCb = new NanCallback(haveCbHandle);
+  Nan::Callback *haverefCb = NULL;
+  if (info.Length() >= 2 && (info[1]->IsFunction())) {
+    Local<Function> haveCbHandle = info[1].As<Function>();
+    haverefCb = new Nan::Callback(haveCbHandle);
   }
 
   st.clear(haverefCb);
-  st.put(args[0]);
+  st.put(info[0]);
 
   Local<Value> result = st.target.getHandle();
   delete haverefCb;
-  NanReturnValue(result);
+  info.GetReturnValue().Set(result);
 }
 
 NAN_METHOD(Stringifier::ConnectorOfValue) {
-  NanScope();
-  if (args.Length() < 1) {
-    return NanThrowTypeError("Missing first argument");
+  Nan::HandleScope();
+  if (info.Length() < 1) {
+    return Nan::ThrowTypeError("Missing first argument");
   }
-  Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(args.This());
+  Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(info.This());
   const StringifyConnector* connector = NULL;
-  if (args[0]->IsObject()) {
-    connector = self->findConnector(args[0].As<Object>());
+  if (info[0]->IsObject()) {
+    connector = self->findConnector(info[0].As<Object>());
   }
-  Handle<Value> result;
+  Local<Value> result;
   if (connector) {
     result = Nan::New<Object>(connector->self);
   } else {
-    result = NanNull();
+    result = Nan::Null();
   }
-  NanReturnValue(result);
+  info.GetReturnValue().Set(result);
 }
 
 void Stringifier::Init(Handle<Object> exports) {
-  NanScope();
+  Nan::HandleScope();
 
   Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);
-  newTpl->SetClassName(Nan::New("Stringifier"));
+  newTpl->SetClassName(Nan::New("Stringifier").ToLocalChecked());
   newTpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "escape", Escape);
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "getTypeid", GetTypeid);
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "stringify", Stringify);
-  NODE_SET_PROTOTYPE_METHOD(newTpl, "connectorOfValue", ConnectorOfValue);
+  Nan::SetPrototypeMethod(newTpl, "escape", Escape);
+  Nan::SetPrototypeMethod(newTpl, "getTypeid", GetTypeid);
+  Nan::SetPrototypeMethod(newTpl, "stringify", Stringify);
+  Nan::SetPrototypeMethod(newTpl, "connectorOfValue", ConnectorOfValue);
 
-  NanAssignPersistent(constructor, newTpl->GetFunction());
-  NanAssignPersistent(sBy, Nan::New("by"));
-  NanAssignPersistent(sSplit, Nan::New("split"));
-  NanAssignPersistent(sConstructor, Nan::New("constructor"));
-  NanAssignPersistent(objectConstructor,
+  constructor.Reset(newTpl->GetFunction());
+  sBy.Reset(Nan::New("by").ToLocalChecked());
+  sSplit.Reset(Nan::New("split").ToLocalChecked());
+  sConstructor.Reset(Nan::New("constructor").ToLocalChecked());
+  objectConstructor.Reset(
     Nan::New<Object>()->Get(Nan::New(sConstructor)).As<Function>()
   );
 
-  exports->Set(Nan::New("Stringifier"), newTpl->GetFunction());
+  exports->Set(Nan::New("Stringifier").ToLocalChecked(), newTpl->GetFunction());
 
   StringifierTarget::Init();
 }

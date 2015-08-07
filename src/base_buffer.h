@@ -32,7 +32,8 @@ class BaseBuffer {
     }
 
     inline v8::Local<v8::String> getHandle() const {
-      return Nan::New<v8::String>(buffer_.data(), buffer_.size());
+      // return Nan::New<v8::String>(buffer_.data(), buffer_.size());
+      return Nan::New<v8::String>(buffer_.data(), buffer_.size()).ToLocalChecked();
     }
 
     inline const usc2vector& getBuffer() const {

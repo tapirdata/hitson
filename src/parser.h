@@ -9,25 +9,25 @@ class Parser: public node::ObjectWrap {
 
   public:
     static void Init(v8::Handle<v8::Object>);
-    v8::Local<v8::Object> createError(int argc, v8::Local<v8::Value> argv[]) const;
+    v8::Local<v8::Value> createError(int argc, v8::Local<v8::Value> argv[]) const;
 
   private:
     Parser(v8::Local<v8::Function>, v8::Local<v8::Object>);
     ~Parser();
 
     struct ParseConnector {
-      v8::Persistent<v8::Object> self;
-      v8::Persistent<v8::Function> create;
-      v8::Persistent<v8::Function> precreate;
-      v8::Persistent<v8::Function> postcreate;
+      Nan::Persistent<v8::Object> self;
+      Nan::Persistent<v8::Function> create;
+      Nan::Persistent<v8::Function> precreate;
+      Nan::Persistent<v8::Function> postcreate;
       TargetBuffer name;
       bool hasCreate;
 
       ~ParseConnector() {
-        Nan::DisposePersistent(self);
-        Nan::DisposePersistent(create);
-        Nan::DisposePersistent(precreate);
-        Nan::DisposePersistent(postcreate);
+        self.Reset();
+        create.Reset();
+        precreate.Reset();
+        postcreate.Reset();
       }
     };
 
@@ -35,11 +35,11 @@ class Parser: public node::ObjectWrap {
     ParserSource* acquirePs();
     void releasePs(ParserSource*);
 
-    static v8::Persistent<v8::Function> constructor;
-    static v8::Persistent<v8::String> sEmpty;
-    static v8::Persistent<v8::String> sCreate;
-    static v8::Persistent<v8::String> sPrecreate;
-    static v8::Persistent<v8::String> sPostcreate;
+    static Nan::Persistent<v8::Function> constructor;
+    static Nan::Persistent<v8::String> sEmpty;
+    static Nan::Persistent<v8::String> sCreate;
+    static Nan::Persistent<v8::String> sPrecreate;
+    static Nan::Persistent<v8::String> sPostcreate;
     static NAN_METHOD(New);
     static NAN_METHOD(Unescape);
     static NAN_METHOD(Parse);
@@ -48,7 +48,7 @@ class Parser: public node::ObjectWrap {
 
     typedef std::map<usc2vector, ParseConnector* > ConnectorMap;
 
-    v8::Persistent<v8::Function> errorClass_;
+    Nan::Persistent<v8::Function> errorClass_;
     ConnectorMap connectors_;
     std::vector<ParserSource*> psPool_;
 };

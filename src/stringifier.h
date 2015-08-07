@@ -25,26 +25,26 @@ class Stringifier: public node::ObjectWrap {
     ~Stringifier();
 
     struct StringifyConnector {
-      v8::Persistent<v8::Object> self;
-      v8::Persistent<v8::Function> by;
-      v8::Persistent<v8::Function> split;
+      Nan::Persistent<v8::Object> self;
+      Nan::Persistent<v8::Function> by;
+      Nan::Persistent<v8::Function> split;
       TargetBuffer name;
 
       ~StringifyConnector() {
-        Nan::DisposePersistent(self);
-        Nan::DisposePersistent(by);
-        Nan::DisposePersistent(split);
+        self.Reset();
+        by.Reset();
+        split.Reset();
       }
     };
 
     inline static int getTypeid(v8::Local<v8::Value> x);
     inline const StringifyConnector* findConnector(v8::Local<v8::Object>) const;
 
-    static v8::Persistent<v8::Function> constructor;
-    static v8::Persistent<v8::String> sBy;
-    static v8::Persistent<v8::String> sSplit;
-    static v8::Persistent<v8::String> sConstructor;
-    static v8::Persistent<v8::Function> objectConstructor;
+    static Nan::Persistent<v8::Function> constructor;
+    static Nan::Persistent<v8::String> sBy;
+    static Nan::Persistent<v8::String> sSplit;
+    static Nan::Persistent<v8::String> sConstructor;
+    static Nan::Persistent<v8::Function> objectConstructor;
 
     static NAN_METHOD(New);
     static NAN_METHOD(Escape);
@@ -54,7 +54,7 @@ class Stringifier: public node::ObjectWrap {
 
     typedef std::vector<StringifyConnector*> ConnectorVector;
 
-    v8::Persistent<v8::Function> errorClass_;
+    Nan::Persistent<v8::Function> errorClass_;
     ConnectorVector connectors_;
     StringifierTarget st_;
 };

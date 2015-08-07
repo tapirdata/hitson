@@ -26,7 +26,7 @@ bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
   if (haveIt != haves.end()) {
     idx = haves.end() - haveIt - 1;
   } else if (haverefCb) {
-    v8::Handle<v8::Value> cbArgv[] = {
+    v8::Local<v8::Value> cbArgv[] = {
       x
     };
     v8::Handle<v8::Value> haveIdx = haverefCb->Call(1, cbArgv);

@@ -27,7 +27,7 @@ inline bool getDate(const std::string& s, v8::Handle<v8::Value>& value) {
   char* end;
   double x = strtod(begin + 1, &end);
   if (end == begin + s.size()) {
-    value = Nan::New<v8::Date>(x);
+    value = Nan::New<v8::Date>(x).ToLocalChecked();
     return true;
   }
   return false;
@@ -62,19 +62,19 @@ v8::Handle<v8::Value> ParserSource::getLiteral() {
     switch (source.nextChar) {
       case 'u':
         next();
-        value = NanUndefined();
+        value = Nan::Undefined();
         break;
       case 'n':
         next();
-        value = NanNull();
+        value = Nan::Null();
         break;
       case 'f':
         next();
-        value = NanFalse();
+        value = Nan::False();
         break;
       case 't':
         next();
-        value = NanTrue();
+        value = Nan::True();
         break;
       case 'd':
         if (source.pullUnescapedString()) {
@@ -132,10 +132,10 @@ v8::Handle<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
           if (parentIdxFrame) {
             idxFrame = parentIdxFrame;
           } else if (backrefCb) {
-            v8::Handle<v8::Value> cbArgv[] = {
+            v8::Local<v8::Value> cbArgv[] = {
               Nan::New<v8::Number>(refIdx)
             };
-            v8::Handle<v8::Value> brValue = backrefCb->Call(1, cbArgv);
+            v8::Local<v8::Value> brValue = backrefCb->Call(1, cbArgv);
             if (brValue->IsObject()) {
               value = brValue.As<v8::Object>();
             } else {
@@ -263,7 +263,7 @@ stageNext:
       goto stageHaveKey;
     case LITERAL:
       next();
-      key = Nan::New<v8::String>();
+      key = Nan::New<v8::String>().ToLocalChecked();
       goto stageHaveKey;
     default:
       makeError();
@@ -274,11 +274,11 @@ stageHaveKey:
   switch (source.nextType) {
     case ENDOBJECT:
       next();
-      frame.value->Set(key, NanTrue());
+      frame.value->Set(key, Nan::True());
       break;
     case PIPE:
       next();
-      frame.value->Set(key, NanTrue());
+      frame.value->Set(key, Nan::True());
       goto stageNext;
     case IS:
       next();
@@ -483,7 +483,7 @@ v8::Handle<v8::Value> ParserSource::getValue(bool* isValue) {
     default:
       if (isValue) {
         *isValue = false;
-        value = Nan::New<v8::String>(&source.nextChar, 1);
+        value = Nan::New<v8::String>(&source.nextChar, 1).ToLocalChecked();
         next();
       } else {
         makeError();
@@ -504,7 +504,7 @@ v8::Handle<v8::Value> ParserSource::getRawValue(bool* isValue) {
       break;
     default:
       *isValue = false;
-      value = Nan::New<v8::String>(&source.nextChar, 1);
+      value = Nan::New<v8::String>(&source.nextChar, 1).ToLocalChecked();
       next();
   }
   return value;
