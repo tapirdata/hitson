@@ -138,7 +138,7 @@ NAN_METHOD(Parser::Parse) {
   Parser* self = node::ObjectWrap::Unwrap<Parser>(info.This());
   ParserSource *ps = self->acquirePs();
   ps->init(s, backrefCb);
-  Local<Value> result = ps->getValue(NULL);
+  Local<Value> result = Nan::New(ps->getValue(NULL));
   self->releasePs(ps);
   delete backrefCb;
   if (ps->hasError) {
@@ -185,7 +185,7 @@ NAN_METHOD(Parser::ParsePartial) {
         ps->skip(nSkipVal);
       }
     } else if (howNext->IsObject()) {
-      error = howNext;
+      error = Nan::New(howNext);
       break;
     } else {
       nextRaw = howNext;
@@ -206,7 +206,7 @@ NAN_METHOD(Parser::ParsePartial) {
     size_t pos = ps->getPos();
     v8::Local<Value> cbArgv[] = {
       Nan::New(isValue),
-      result,
+      Nan::New(result),
       Nan::New<v8::Number>(pos)
     };
     howNext = cb->Call(3, cbArgv);
