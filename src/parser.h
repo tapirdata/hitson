@@ -9,7 +9,7 @@ class Parser: public node::ObjectWrap {
 
   public:
     static void Init(v8::Handle<v8::Object>);
-    v8::Local<v8::Object> createError(int argc, v8::Local<v8::Value> argv[]) const;
+    v8::Handle<v8::Value> createError(int argc, v8::Local<v8::Value> argv[]) const;
 
   private:
     Parser(v8::Local<v8::Function>, v8::Local<v8::Object>);

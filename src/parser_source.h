@@ -53,7 +53,7 @@ class ParserSource {
     Parser& parser_;
     SourceBuffer source;
     bool hasError;
-    v8::Local<v8::Object> error;
+    v8::Handle<v8::Value> error;
     NanCallback* backrefCb;
 };
 

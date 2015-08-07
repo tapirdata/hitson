@@ -262,7 +262,7 @@ void Parser::Init(v8::Handle<v8::Object> exports) {
 }
 
 
-Local<Object> Parser::createError(int argc, Local<Value> *argv) const {
+Handle<Value> Parser::createError(int argc, Local<Value> *argv) const {
   return NanNew<v8::Function>(errorClass_)->NewInstance(argc, argv);
 }
 
