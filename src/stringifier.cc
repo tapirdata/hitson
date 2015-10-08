@@ -1,6 +1,5 @@
 #include "stringifier.h"
 
-using v8::Handle;
 using v8::Local;
 using v8::Value;
 using v8::String;
@@ -136,7 +135,7 @@ NAN_METHOD(Stringifier::ConnectorOfValue) {
   info.GetReturnValue().Set(result);
 }
 
-void Stringifier::Init(Handle<Object> exports) {
+void Stringifier::Init(Local<Object> exports) {
   Nan::HandleScope();
 
   Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);

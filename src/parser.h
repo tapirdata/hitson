@@ -8,7 +8,7 @@ class Parser: public node::ObjectWrap {
   friend class ParserSource;
 
   public:
-    static void Init(v8::Handle<v8::Object>);
+    static void Init(v8::Local<v8::Object>);
     v8::Local<v8::Value> createError(int argc, v8::Local<v8::Value> argv[]) const;
 
   private:

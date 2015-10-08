@@ -18,7 +18,7 @@ enum {
 class Stringifier: public node::ObjectWrap {
   public:
     friend class StringifierTarget;
-    static void Init(v8::Handle<v8::Object>);
+    static void Init(v8::Local<v8::Object>);
 
   private:
     Stringifier(v8::Local<v8::Function>, v8::Local<v8::Object>);
@@ -60,9 +60,9 @@ class Stringifier: public node::ObjectWrap {
 };
 
 const Stringifier::StringifyConnector* Stringifier::findConnector(v8::Local<v8::Object> x) const {
-  v8::Handle<v8::Value> constructor = x->Get(Nan::New(sConstructor));
+  v8::Local<v8::Value> constructor = x->Get(Nan::New(sConstructor));
   if (constructor->IsFunction()) {
-    v8::Handle<v8::Value> constructorF = constructor.As<v8::Function>();
+    v8::Local<v8::Value> constructorF = constructor.As<v8::Function>();
     if (constructorF != Nan::New(objectConstructor)) {
       for (ConnectorVector::const_iterator it=connectors_.begin(); it != connectors_.end(); ++it) {
         // std::cout << "findConnector" << std::endl;

@@ -2,7 +2,6 @@
 #include "parser.h"
 
 using v8::Local;
-using v8::Handle;
 using v8::Value;
 using v8::String;
 using v8::Object;
@@ -138,7 +137,7 @@ NAN_METHOD(Parser::Parse) {
   Parser* self = node::ObjectWrap::Unwrap<Parser>(info.This());
   ParserSource *ps = self->acquirePs();
   ps->init(s, backrefCb);
-  Local<Value> result = Nan::New(ps->getValue(NULL));
+  Local<Value> result = ps->getValue(NULL);
   self->releasePs(ps);
   delete backrefCb;
   if (ps->hasError) {
@@ -158,7 +157,7 @@ NAN_METHOD(Parser::ParsePartial) {
   }
 
   Local<String> s = info[0].As<String>();
-  Handle<Value> howNext = info[1];
+  Local<Value> howNext = info[1];
 
   Local<Function> cbHandle = info[2].As<Function>();
   Nan::Callback *cb = new Nan::Callback(cbHandle);
@@ -175,9 +174,9 @@ NAN_METHOD(Parser::ParsePartial) {
   bool reqAbort = false;
   Local<Value> error;
   while (true) {
-    Handle<Value> nextRaw;
+    Local<Value> nextRaw;
     if (howNext->IsArray()) {
-      Handle<v8::Array> howNextArr = howNext.As<v8::Array>();
+      Local<v8::Array> howNextArr = howNext.As<v8::Array>();
       nextRaw = howNextArr->Get(0);
       Local<Value> nSkip = howNextArr->Get(1);
       if (nSkip->IsNumber()) {
@@ -185,7 +184,7 @@ NAN_METHOD(Parser::ParsePartial) {
         ps->skip(nSkipVal);
       }
     } else if (howNext->IsObject()) {
-      error = Nan::New(howNext);
+      error = howNext;
       break;
     } else {
       nextRaw = howNext;
@@ -198,7 +197,7 @@ NAN_METHOD(Parser::ParsePartial) {
       break;
     }
     bool isValue = true;
-    Handle<Value> result = nextRaw->IsTrue() ? ps->getRawValue(&isValue): ps->getValue(&isValue);
+    Local<Value> result = nextRaw->IsTrue() ? ps->getRawValue(&isValue): ps->getValue(&isValue);
     if (ps->hasError) {
       error = ps->error;
       break;
@@ -206,7 +205,7 @@ NAN_METHOD(Parser::ParsePartial) {
     size_t pos = ps->getPos();
     v8::Local<Value> cbArgv[] = {
       Nan::New(isValue),
-      Nan::New(result),
+      result,
       Nan::New<v8::Number>(pos)
     };
     howNext = cb->Call(3, cbArgv);
@@ -239,7 +238,7 @@ NAN_METHOD(Parser::ConnectorOfCname) {
   info.GetReturnValue().Set(result);
 }
 
-void Parser::Init(v8::Handle<v8::Object> exports) {
+void Parser::Init(v8::Local<v8::Object> exports) {
   Nan::HandleScope();
 
   Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);

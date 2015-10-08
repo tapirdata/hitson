@@ -25,13 +25,13 @@
   "license": "MIT",
   "dependencies": {
     "bindings": "~1.2.1",
-    "nan": "2.0.4"
+    "nan": "2.0.9"
   },
   "devDependencies": {
-    "chai": "^3.0.0",
-    "coffee-script": "^1.9.1",
+    "chai": "^3.3.0",
+    "coffee-script": "^1.10.0",
     "lodash": "^3.10.0",
-    "mocha": "^2.2.1"
+    "mocha": "^2.3.3"
   },
   "gypfile": true
 }

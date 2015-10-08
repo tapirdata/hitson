@@ -29,7 +29,7 @@ bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
     v8::Local<v8::Value> cbArgv[] = {
       x
     };
-    v8::Handle<v8::Value> haveIdx = haverefCb->Call(1, cbArgv);
+    v8::Local<v8::Value> haveIdx = haverefCb->Call(1, cbArgv);
     if (!haveIdx->IsUint32()) {
       return false;
     }
