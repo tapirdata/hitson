@@ -14,8 +14,8 @@
     "parse"
   ],
   "repository": {
-    "type": "github",
-    "url": "https://github.com/tapirdata/wson-addon"
+    "type": "git",
+    "url": "tapirdata/wson-addon"
   },
   "author": {
     "name": "Andreas Riedl",
