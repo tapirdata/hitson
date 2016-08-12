@@ -1,5 +1,4 @@
 import * as extdefs from './extdefs';
-console.log('extdefs=', extdefs)
 
 let connectors = {
   Point: {
