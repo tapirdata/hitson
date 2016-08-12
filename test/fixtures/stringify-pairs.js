@@ -1,4 +1,4 @@
-import { Point, Polygon, Foo } as extdefs from './extdefs';
+import { Point, Polygon, Foo } from './extdefs';
 
 let cycArr0 = ['a']; cycArr0.push(cycArr0);
 let cycArr1 = ['a', ['b']]; cycArr1[1].push(cycArr1[1]);
