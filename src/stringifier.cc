@@ -67,7 +67,11 @@ NAN_METHOD(Stringifier::New) {
     const int argc = 2;
     Local<Value> argv[argc] = {errorClass, options};
     Local<Function> cons = Nan::New<Function>(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
+    // info.GetReturnValue().Set(cons->NewInstance(argc, argv));
+    Nan::MaybeLocal<v8::Object> result = Nan::NewInstance(cons, argc, argv);
+    if (!result.IsEmpty()) {
+      info.GetReturnValue().Set(result.ToLocalChecked());
+    }
   }
 }
 

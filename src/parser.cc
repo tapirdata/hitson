@@ -98,7 +98,11 @@ NAN_METHOD(Parser::New) {
     const int argc = 2;
     Local<Value> argv[argc] = {errorClass, errorClass};
     Local<Function> cons = Nan::New<Function>(constructor);
-    info.GetReturnValue().Set(cons->NewInstance(argc, argv));
+    // info.GetReturnValue().Set(cons->NewInstance(argc, argv));
+    Nan::MaybeLocal<v8::Object> result = Nan::NewInstance(cons, argc, argv);
+    if (!result.IsEmpty()) {
+      info.GetReturnValue().Set(result.ToLocalChecked());
+    }
   }
 }
 
@@ -261,7 +265,10 @@ void Parser::Init(v8::Local<v8::Object> exports) {
 
 
 Local<Value> Parser::createError(int argc, Local<Value> *argv) const {
-  return Nan::New<v8::Function>(errorClass_)->NewInstance(argc, argv);
+  Local<Function> ferr = Nan::New<Function>(errorClass_);
+  Nan::MaybeLocal<v8::Object> result = Nan::NewInstance(ferr, argc, argv);
+  return result.ToLocalChecked();
+  // return Nan::New<v8::Function>(errorClass_)->NewInstance(argc, argv);
 }
 
 
