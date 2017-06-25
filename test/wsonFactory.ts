@@ -1,7 +1,14 @@
 import wson from '../lib/';
 
 class ParseError extends Error {
-  constructor(s, pos, cause) {
+
+  s: string
+  pos: number
+  cause: string
+  message: string
+  name: string
+
+  constructor(s: string, pos: number, cause: string) {
     super()
     this.s = s;
     this.pos = pos;
@@ -12,6 +19,13 @@ class ParseError extends Error {
 }
 
 class StringifierError extends Error {
+
+  s: string
+  pos: number
+  cause: string
+  message: string
+  name: string
+
   constructor(s, pos, cause) {
     super()
     this.s = s;
@@ -22,8 +36,13 @@ class StringifierError extends Error {
   }
 }
 
+export interface Factory {
+  (options: any): any
+  ParseError: typeof ParseError
+  StringifierError: typeof StringifierError
+}
 
-let factory = function(options) {
+const factory = ((options) => {
   let stringifier = new wson.Stringifier(StringifierError, options);
   let parser = new wson.Parser(ParseError, options);
   return {
@@ -42,7 +61,9 @@ let factory = function(options) {
     connectorOfCname(cname) { return parser.connectorOfCname(cname); },
     connectorOfValue(value) { return stringifier.connectorOfValue(value); }
   };
-};
+}) as Factory
 
-factory.ParseError = ParseError;
+factory.ParseError = ParseError
+factory.StringifierError = StringifierError
+
 export default factory;

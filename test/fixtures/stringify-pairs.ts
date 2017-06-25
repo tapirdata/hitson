@@ -1,14 +1,15 @@
-import { Point, Polygon, Foo } from './extdefs';
+import { Point, Polygon, Foo } from './extdefs'
+import { Pair } from './helpers'
 
-let cycArr0 = ['a']; cycArr0.push(cycArr0);
-let cycArr1 = ['a', ['b']]; cycArr1[1].push(cycArr1[1]);
-let cycArr2 = ['a', ['b']]; cycArr2[1].push(cycArr2);
+let cycArr0: any = ['a']; cycArr0.push(cycArr0);
+let cycArr1: any = ['a', ['b']]; cycArr1[1].push(cycArr1[1]);
+let cycArr2: any = ['a', ['b']]; cycArr2[1].push(cycArr2);
 
-let cycObj0 = {a: 3}; cycObj0.x = cycObj0;
-let cycObj1 = {a: 3, b: {}}; cycObj1.b.r0 = cycObj1.b;
-let cycObj2 = {a: 3, b: {}}; cycObj2.b.r1 = cycObj2;
+let cycObj0: any = {a: 3}; cycObj0.x = cycObj0;
+let cycObj1: any = {a: 3, b: {}}; cycObj1.b.r0 = cycObj1.b;
+let cycObj2: any = {a: 3, b: {}}; cycObj2.b.r1 = cycObj2;
 
-let cycPoint = new Point(8, 9);
+let cycPoint: any = new Point(8, 9);
 cycPoint.x = cycPoint;
 
 let extBacks = [[100],[101],[102]];
@@ -25,8 +26,7 @@ let haverefCb = function(item) {
   return null;
 };
 
-
-export default [
+const pairs: Pair[] = [
   {
     x: 'abc',
     s: 'abc'
@@ -357,4 +357,6 @@ export default [
     parseFailPos: 11
   }
 ];
+
+export default pairs
 

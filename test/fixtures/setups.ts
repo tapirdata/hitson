@@ -5,7 +5,7 @@ let connectors = {
     by: extdefs.Point,
     split(p) { return p.__wsonsplit__(); },
     precreate() { return Object.create(extdefs.Point.prototype); },
-    postcreate(obj, args) { return extdefs.Point.apply(obj, args); }
+    postcreate(obj, args) { obj.initialize(...args) },
   },
   Polygon: {
     by: extdefs.Polygon,
@@ -17,9 +17,7 @@ let connectors = {
     by: extdefs.Foo,
     split(foo) { return [foo.y, foo.x]; },
     precreate() { return Object.create(extdefs.Foo.prototype); },
-    postcreate(foo, args) {
-      return extdefs.Foo.call(foo, args[1], args[0]);
-    }
+    postcreate(obj, args) { obj.y = args[0]; obj.x = args[1]; return obj},
   }
 };
 

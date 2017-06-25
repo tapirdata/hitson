@@ -1,6 +1,6 @@
+import { Pair } from './helpers'
 
-
-export default [
+const pairs: Pair[] = [
   {
     s: '',
     col: [],
@@ -87,4 +87,5 @@ export default [
   }
 ];
 
+export default pairs
 

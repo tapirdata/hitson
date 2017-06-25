@@ -1,5 +1,14 @@
+
 class Point {
-  constructor(x, y) {
+
+  public x?: number
+  public y?: number
+
+  constructor(...args) {
+    this.initialize(...args)
+  }
+
+  initialize(x?: number, y?: number) {
     this.x = x;
     this.y = y;
   }
@@ -8,12 +17,19 @@ class Point {
 
 
 class Polygon {
+
+  public points: Point[]
+  
   constructor(points) {
     this.points = points || [];
   }
 }
 
 class Foo {
+
+  public x: number
+  public y: number
+
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -21,8 +37,6 @@ class Foo {
 }
 
 
-export { Point };
-export { Polygon };
-export { Foo };
+export { Foo, Point, Polygon }
 
 
