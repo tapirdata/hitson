@@ -1,5 +1,6 @@
 src/*.ts
 test/
 build/
+@types/
 .npmignore
 .travis.yml

@@ -4,6 +4,9 @@
   "description": "An addon for faster WSON stringifying/parsing",
   "main": "./lib",
   "scripts": {
+    "lint": "tslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "build": "tsc",
+    "prepare": "npm run build",
     "test": "mocha --compilers ts:ts-node/register ./test"
   },
   "keywords": [
@@ -29,6 +32,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.0.1",
+    "@types/lodash": "^4.14.66",
     "@types/mocha": "^2.2.41",
     "@types/node": "^8.0.2",
     "chai": "^4.0.2",

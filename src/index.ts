@@ -1,5 +1,5 @@
-import bindings = require('bindings')
+import bindings = require("bindings")
 
-let wsonFactory = bindings('wson_addon')
+const wsonFactory = bindings("wson_addon")
 
 export default wsonFactory

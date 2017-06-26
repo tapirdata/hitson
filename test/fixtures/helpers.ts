@@ -1,13 +1,13 @@
-import util = require('util')
+import util = require("util")
 
 function saveRepr(x: any) {
   try {
-    return util.inspect(x, {depth: null});
+    return util.inspect(x, {depth: null})
   } catch (error0)  {
     try {
-      return JSON.stringify(x);
+      return JSON.stringify(x)
     } catch (error1) {
-      return String(x);
+      return String(x)
     }
   }
 }
@@ -18,11 +18,10 @@ interface Pair {
   failPos?: number
   stringifyFailPos?: number
   parseFailPos?: number
-  backrefCb?: Function
-  haverefCb?: Function
+  backrefCb?: (refNum: number) => any
+  haverefCb?: (item: any) => number | null
   nrs?: any
   col?: any
 }
-
 
 export { saveRepr, Pair }

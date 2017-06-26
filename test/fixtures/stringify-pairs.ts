@@ -1,362 +1,361 @@
-import { Point, Polygon, Foo } from './extdefs'
-import { Pair } from './helpers'
+import { Foo, Point, Polygon } from "./extdefs"
+import { Pair } from "./helpers"
 
-let cycArr0: any = ['a']; cycArr0.push(cycArr0);
-let cycArr1: any = ['a', ['b']]; cycArr1[1].push(cycArr1[1]);
-let cycArr2: any = ['a', ['b']]; cycArr2[1].push(cycArr2);
+const cycArr0: any = ["a"]; cycArr0.push(cycArr0)
+const cycArr1: any = ["a", ["b"]]; cycArr1[1].push(cycArr1[1])
+const cycArr2: any = ["a", ["b"]]; cycArr2[1].push(cycArr2)
 
-let cycObj0: any = {a: 3}; cycObj0.x = cycObj0;
-let cycObj1: any = {a: 3, b: {}}; cycObj1.b.r0 = cycObj1.b;
-let cycObj2: any = {a: 3, b: {}}; cycObj2.b.r1 = cycObj2;
+const cycObj0: any = {a: 3}; cycObj0.x = cycObj0
+const cycObj1: any = {a: 3, b: {}}; cycObj1.b.r0 = cycObj1.b
+const cycObj2: any = {a: 3, b: {}}; cycObj2.b.r1 = cycObj2
 
-let cycPoint: any = new Point(8, 9);
-cycPoint.x = cycPoint;
+const cycPoint: any = new Point(8, 9)
+cycPoint.x = cycPoint
 
-let extBacks = [[100],[101],[102]];
+const extBacks = [[100], [101], [102]]
 
-let backrefCb = refNum => extBacks[refNum];
+const backrefCb = (refNum: number) => extBacks[refNum]
 
-let haverefCb = function(item) {
+const haverefCb = (item: any) => {
   for (let idx = 0; idx < extBacks.length; idx++) {
-    let back = extBacks[idx];
+    const back = extBacks[idx]
     if (item === back) {
-      return idx;
+      return idx
     }
   }
-  return null;
-};
+  return null
+}
 
 const pairs: Pair[] = [
   {
-    x: 'abc',
-    s: 'abc'
+    x: "abc",
+    s: "abc",
   },
   {
-    x: '',
-    s: '#'
+    x: "",
+    s: "#",
   },
   {
-    x: 'a[b]c',
-    s: 'a`ab`ec'
+    x: "a[b]c",
+    s: "a`ab`ec",
   },
   {
     x: 3,
-    s: '#3'
+    s: "#3",
   },
   {
     x: true,
-    s: '#t'
+    s: "#t",
   },
   {
     x: false,
-    s: '#f'
+    s: "#f",
   },
   {
     x: null,
-    s: '#n'
+    s: "#n",
   },
   {
     x: undefined,
-    s: '#u'
+    s: "#u",
   },
   {
     x: undefined,
-    s: '#u'
+    s: "#u",
   },
   {
     x: new Date(1400000000000),
-    s: '#d1400000000000'
+    s: "#d1400000000000",
   },
   {
-    x: ':abc',
-    s: '`iabc'
+    x: ":abc",
+    s: "`iabc",
   },
   // array
   {
-    x: ['ab'],
-    s: '[ab]'
+    x: ["ab"],
+    s: "[ab]",
   },
   {
     x: [],
-    s: '[]'
+    s: "[]",
   },
   {
-    x: ['a', ''],
-    s: '[a|#]'
+    x: ["a", ""],
+    s: "[a|#]",
   },
   {
-    x: ['ab', 'c'],
-    s: '[ab|c]'
+    x: ["ab", "c"],
+    s: "[ab|c]",
   },
   {
-    x: ['ab', 3, true, 'c', null],
-    s: '[ab|#3|#t|c|#n]'
+    x: ["ab", 3, true, "c", null],
+    s: "[ab|#3|#t|c|#n]",
   },
   // object
   {
     x: {},
-    s: '{}'
+    s: "{}",
   },
   {
-    x: {a: 'aa', '': 'bb'},
-    s: '{#:bb|a:aa}'
+    x: {"a": "aa", "": "bb"},
+    s: "{#:bb|a:aa}",
   },
   {
-    x: {a: 'aa', b: 'bb'},
-    s: '{a:aa|b:bb}'
+    x: {a: "aa", b: "bb"},
+    s: "{a:aa|b:bb}",
   },
   {
     x: {a: 3, b: 4},
-    s: '{a:#3|b:#4}'
+    s: "{a:#3|b:#4}",
   },
   {
-    x: {a: '3', b: true},
-    s: '{a:3|b}'
+    x: {a: "3", b: true},
+    s: "{a:3|b}",
   },
   {
-    x: {a: '3', b: null},
-    s: '{a:3|b:#n}'
+    x: {a: "3", b: null},
+    s: "{a:3|b:#n}",
   },
   {
-    x: {'300': '3'},
-    s: '{300:3}'
+    x: {300: "3"},
+    s: "{300:3}",
   },
   // complex
   {
     x: [[]],
-    s: '[[]]'
+    s: "[[]]",
   },
   {
     x: [[], []],
-    s: '[[]|[]]'
+    s: "[[]|[]]",
   },
   {
     x: [{}],
-    s: '[{}]'
+    s: "[{}]",
   },
   {
-    x: {y:[], x:true},
-    s: '{x|y:[]}'
+    x: {y: [], x: true},
+    s: "{x|y:[]}",
   },
   {
-    x: {a:{}},
-    s: '{a:{}}'
+    x: {a: {}},
+    s: "{a:{}}",
   },
   {
-    x: {a:{a:['b',{c:3}],b:{c:[8,2]}}},
-    s:'{a:{a:[b|{c:#3}]|b:{c:[#8|#2]}}}'
+    x: {a: {a: ["b", {c: 3}], b: {c: [8, 2]}}},
+    s: "{a:{a:[b|{c:#3}]|b:{c:[#8|#2]}}}",
   },
   {
-    x: {'[a]':'[b]'},
-    s: '{`aa`e:`ab`e}'
+    x: {"[a]": "[b]"},
+    s: "{`aa`e:`ab`e}",
   },
   // cyclic
   {
     x: cycArr0,
-    s: '[a||0]'
+    s: "[a||0]",
   },
   {
     x: cycArr1,
-    s: '[a|[b||0]]'
+    s: "[a|[b||0]]",
   },
   {
     x: cycArr2,
-    s: '[a|[b||1]]'
+    s: "[a|[b||1]]",
   },
   {
     x: cycObj0,
-    s: '{a:#3|x:|0}'
+    s: "{a:#3|x:|0}",
   },
   {
     x: cycObj1,
-    s: '{a:#3|b:{r0:|0}}'
+    s: "{a:#3|b:{r0:|0}}",
   },
   {
     x: cycObj2,
-    s: '{a:#3|b:{r1:|1}}'
+    s: "{a:#3|b:{r1:|1}}",
   },
   // ext backref
   {
     x: {a: 3, b: extBacks[0]},
-    s: '{a:#3|b:|1}',
+    s: "{a:#3|b:|1}",
     backrefCb,
-    haverefCb
+    haverefCb,
   },
   {
     x: {a: 3, b: extBacks[2]},
-    s: '{a:#3|b:|3}',
-    backrefCb,
-    haverefCb
-  },
-  {
-    s: '{a:#3|b:|4}',
+    s: "{a:#3|b:|3}",
     backrefCb,
     haverefCb,
-    parseFailPos: 9
+  },
+  {
+    s: "{a:#3|b:|4}",
+    backrefCb,
+    haverefCb,
+    parseFailPos: 9,
   },
   {
     x: extBacks[0],
-    s: '|0',
+    s: "|0",
     backrefCb,
-    haverefCb
+    haverefCb,
   },
   {
     x: extBacks[1],
-    s: '|1',
+    s: "|1",
     backrefCb,
-    haverefCb
+    haverefCb,
   },
   // extension
   {
     x: new Point(3, 4),
-    s: '[:Point|#3|#4]'
+    s: "[:Point|#3|#4]",
   },
   {
-    x: new Polygon([new Point(3,4), new Point(12, 5)]),
-    s: '[:Polygon|[:Point|#3|#4]|[:Point|#12|#5]]'
+    x: new Polygon([new Point(3, 4), new Point(12, 5)]),
+    s: "[:Polygon|[:Point|#3|#4]|[:Point|#12|#5]]",
   },
   {
     x: new Foo(3, 4),
-    s: '[:Foo|#4|#3]'
+    s: "[:Foo|#4|#3]",
   },
   {
     x: cycPoint,
-    s: '[:Point||0|#9]'
+    s: "[:Point||0|#9]",
   },
   // fail
   {
-    s: '',
-    parseFailPos: 0
+    s: "",
+    parseFailPos: 0,
   },
   // escape
   {
-    s: '`zabc',
-    parseFailPos: 1
+    s: "`zabc",
+    parseFailPos: 1,
   },
   {
-    s: 'ab`zc',
-    parseFailPos: 3
+    s: "ab`zc",
+    parseFailPos: 3,
   },
   {
-    s: 'ab`',
-    parseFailPos: 3
+    s: "ab`",
+    parseFailPos: 3,
   },
   // literal
   {
-    s: '#x',
-    parseFailPos: 1
+    s: "#x",
+    parseFailPos: 1,
   },
   {
-    s: '#123x',
-    parseFailPos: 1
+    s: "#123x",
+    parseFailPos: 1,
   },
   {
-    s: '#[x]',
-    parseFailPos: 1
+    s: "#[x]",
+    parseFailPos: 1,
   },
   // syntax
   {
-    s: '[',
-    parseFailPos: 1
+    s: "[",
+    parseFailPos: 1,
   },
   {
-    s: '}',
-    parseFailPos: 0
+    s: "}",
+    parseFailPos: 0,
   },
   {
-    s: '{',
-    parseFailPos: 1
+    s: "{",
+    parseFailPos: 1,
   },
   {
-    s: '|',
-    parseFailPos: 0
+    s: "|",
+    parseFailPos: 0,
   },
   {
-    s: ':',
-    parseFailPos: 0
+    s: ":",
+    parseFailPos: 0,
   },
   {
-    s: 'a#b',
-    parseFailPos: 1
+    s: "a#b",
+    parseFailPos: 1,
   },
   {
-    s: 'a|b',
-    parseFailPos: 1
+    s: "a|b",
+    parseFailPos: 1,
   },
   {
-    s: 'a[b]',
-    parseFailPos: 1
+    s: "a[b]",
+    parseFailPos: 1,
   },
   {
-    s: '[]a',
-    parseFailPos: 2
+    s: "[]a",
+    parseFailPos: 2,
   },
   {
-    s: '[]]',
-    parseFailPos: 2
+    s: "[]]",
+    parseFailPos: 2,
   },
   {
-    s: '[a:4]',
-    parseFailPos: 2
+    s: "[a:4]",
+    parseFailPos: 2,
   },
   {
-    s: '{[}]',
-    parseFailPos: 1
+    s: "{[}]",
+    parseFailPos: 1,
   },
   {
-    s: '[a|]',
-    parseFailPos: 3
+    s: "[a|]",
+    parseFailPos: 3,
   },
   {
-    s: '{|}',
-    parseFailPos: 1
+    s: "{|}",
+    parseFailPos: 1,
   },
   {
-    s: '{|a}',
-    parseFailPos:1
+    s: "{|a}",
+    parseFailPos: 1,
   },
   {
-    s: '{a|}',
-    parseFailPos: 3
+    s: "{a|}",
+    parseFailPos: 3,
   },
   {
-    s: '{|a:b}',
-    parseFailPos: 1
+    s: "{|a:b}",
+    parseFailPos: 1,
   },
   {
-    s: '{a:b|}',
-    parseFailPos: 5
+    s: "{a:b|}",
+    parseFailPos: 5,
   },
   {
-    s: '{a:}',
-    parseFailPos: 3
+    s: "{a:}",
+    parseFailPos: 3,
   },
   {
-    s: '{a:b:}',
-    parseFailPos: 4
+    s: "{a:b:}",
+    parseFailPos: 4,
   },
   // backref
   {
-    s: '[|]',
-    parseFailPos: 2
+    s: "[|]",
+    parseFailPos: 2,
   },
   {
-    s: '[|a]',
-    parseFailPos: 2
+    s: "[|a]",
+    parseFailPos: 2,
   },
   {
-    s: '[|-1]',
-    parseFailPos: 2
+    s: "[|-1]",
+    parseFailPos: 2,
   },
   {
-    s: '[|1]',
-    parseFailPos: 2
+    s: "[|1]",
+    parseFailPos: 2,
   },
   {
-    s: '[:Polygon||0]',
-    parseFailPos: 11
-  }
-];
+    s: "[:Polygon||0]",
+    parseFailPos: 11,
+  },
+]
 
 export default pairs
-

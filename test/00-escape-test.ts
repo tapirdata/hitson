@@ -1,26 +1,21 @@
-import { expect } from 'chai';
+import { expect } from "chai"
 
-import wsonFactory from './wsonFactory';
-import iterable from './fixtures/setups';
-import pairs from './fixtures/escape-pairs';
+import pairs from "./fixtures/escape-pairs"
+import setups from "./fixtures/setups"
+import wsonFactory from "./wsonFactory"
 
-for (let i = 0; i < iterable.length; i++) {
-  let setup = iterable[i];
-  describe(setup.name, function() {
-    let wson = wsonFactory(setup.options);
-    return describe('escape', function() {
-      for (let j = 0; j < pairs.length; j++) {
-        let [s, xs] = pairs[j];
+for (const setup of setups) {
+  describe(setup.name, () => {
+    const wson = wsonFactory(setup.options)
+    describe("escape", () => {
+      for (const pair of pairs) {
+        const [s, xs] = pair
         if (s != null) {
-          ((s, xs) =>
-            it(`should escape '${s}' as '${xs}' `, () => expect(wson.escape(s)).to.be.equal(xs)
-            )
-          )(s, xs);
+          it(`should escape '${s}' as '${xs}' `, () => {
+            expect(wson.escape(s)).to.be.equal(xs)
+          })
         }
       }
-    }
-    );
-  }
-  );      
+    })
+  })
 }
-
