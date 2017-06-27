@@ -269,7 +269,7 @@ const pairs: Pair[] = [
   },
   {
     s: "|",
-    parseFailPos: 0,
+    parseFailPos: 1,
   },
   {
     s: ":",

@@ -111,7 +111,7 @@ v8::Local<v8::Value> ParserSource::getLiteral() {
 v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
   v8::Local<v8::Object> value = Nan::New<v8::Object>();
   bool refErr = false;
-  size_t refBeginIdx = source.nextIdx - 1;
+  size_t refBeginIdx = source.nextIdx;
   Ctype nextType = source.nextType;
   if (nextType != TEXT) {
     refErr = true;
@@ -164,6 +164,9 @@ v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
     // std::cout << "getBackreffed refErr nextType=" << source.nextType << std::endl;
     TargetBuffer msg;
     msg.append(std::string("unexpected backref '"));
+    if (nextType != END) {
+      --refBeginIdx;
+    }
     if (nextType == TEXT) {
       msg.append(source.nextString);
     } else {
