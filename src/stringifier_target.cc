@@ -33,7 +33,7 @@ bool StringifierTarget::putBackref(v8::Local<v8::Object> x) {
     if (!haveIdx->IsUint32()) {
       return false;
     }
-    idx = haves.size() + haveIdx->Uint32Value();
+    idx = haves.size() + Nan::To<uint32_t>(haveIdx).ToChecked();
   } else {
     return false;
   }
@@ -57,19 +57,19 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       break;
     case TI_BOOLEAN:
       target.push('#');
-      if (x->BooleanValue())
+      if (Nan::To<bool>(x).ToChecked())
         target.push('t');
       else
         target.push('f');
       break;
     case TI_NUMBER:
       target.push('#');
-      target.appendHandle(x->ToString());
+      target.appendHandle(Nan::To<v8::String>(x).ToLocalChecked());
       break;
     case TI_DATE:
       target.push('#');
       target.push('d');
-      target.appendHandle(Nan::New<v8::Number>(x->NumberValue())->ToString());
+      target.appendHandle(Nan::To<v8::String>(Nan::To<v8::Number>(x).ToLocalChecked()).ToLocalChecked());
       break;
     case TI_STRING:
       putText(x.As<v8::String>());
@@ -83,7 +83,7 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
       uint32_t len = array->Length();
       target.push('[');
       for (uint32_t i=0; i<len; ++i) {
-        putValue(array->Get(i));
+        putValue(array->Get(Nan::GetCurrentContext(), i).ToLocalChecked());
         if (i + 1 != len) {
           target.push('|');
         }
@@ -108,13 +108,13 @@ void StringifierTarget::putValue(v8::Local<v8::Value> x) {
         v8::Local<v8::Value> argv[argc] = {x};
         v8::Local<v8::Function> split = Nan::New<v8::Function>(connector->split);
         if (!split.IsEmpty()) {
-          v8::Local<v8::Value> args = split->Call(Nan::New<v8::Object>(connector->self), argc, argv);
+          v8::Local<v8::Value> args = split->Call(Nan::GetCurrentContext(), Nan::New<v8::Object>(connector->self), argc, argv).ToLocalChecked();
           if (!args.IsEmpty() && args->IsArray()) {
             v8::Local<v8::Array> argsArray = args.As<v8::Array>();
             uint32_t len = argsArray->Length();
             for (uint32_t i=0; i<len; ++i) {
               target.push('|');
-              putValue(argsArray->Get(i));
+              putValue(argsArray->Get(Nan::GetCurrentContext(), i).ToLocalChecked());
             }
           }
         }
@@ -137,7 +137,7 @@ void StringifierTarget::put(v8::Local<v8::Value> x) {
 }
 
 void ObjectAdaptor::putObject(v8::Local<v8::Object> obj) {
-  v8::Local<v8::Array> keys = obj->GetOwnPropertyNames();
+  v8::Local<v8::Array> keys = obj->GetOwnPropertyNames(Nan::GetCurrentContext()).ToLocalChecked();
   uint32_t len = keys->Length();
   entries.resize(len);
   entryIdxs.resize(len);
@@ -145,11 +145,11 @@ void ObjectAdaptor::putObject(v8::Local<v8::Object> obj) {
   for (uint32_t i=0; i<len; ++i) {
     entryIdxs[i] = i;
     Entry& entry = entries[i];
-    v8::Local<v8::Value> key = keys->Get(i);
-    v8::Local<v8::String> skey = key->IsString() ? key.As<v8::String>() : key->ToString();
+    v8::Local<v8::Value> key = keys->Get(Nan::GetCurrentContext(), i).ToLocalChecked();
+    v8::Local<v8::String> skey = key->IsString() ? key.As<v8::String>() : Nan::To<v8::String>(key).ToLocalChecked();
     entry.keyBeginIdx = keyBunch.size();
     entry.keyLength = skey->Length();
-    entry.value = obj->Get(key);
+    entry.value = obj->Get(Nan::GetCurrentContext(), key).ToLocalChecked();
     keyBunch.appendHandle(skey);
   }
 }
@@ -206,7 +206,7 @@ void ObjectAdaptor::emit(StringifierTarget& st) {
     size_t entryIdx = entryIdxs[i];
     Entry& entry = entries[entryIdx];
     st.putText(keyBuffer, entry.keyBeginIdx, entry.keyLength);
-    if (!entry.value->IsBoolean() || !entry.value->BooleanValue()) {
+    if (!entry.value->IsBoolean() || !Nan::To<bool>(entry.value).ToChecked()) {
       st.target.push(':');
       st.putValue(entry.value);
     }

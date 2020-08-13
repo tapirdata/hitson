@@ -23,12 +23,13 @@ class BaseBuffer {
     }
 
     inline void appendHandle(v8::Local<v8::String> source, int start=0, int length=-1) {
+      v8::Isolate* isolate = v8::Isolate::GetCurrent();
       size_t oldSize = buffer_.size();
       if (length < 0) {
         length = source->Length() - start;
       }
       buffer_.resize(oldSize + length);
-      source->Write(buffer_.data() + oldSize, start, length, v8::String::NO_NULL_TERMINATION);
+      source->Write(isolate, buffer_.data() + oldSize, start, length, v8::String::NO_NULL_TERMINATION);
     }
 
     inline v8::Local<v8::String> getHandle() const {

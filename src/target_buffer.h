@@ -61,13 +61,14 @@ class TargetBuffer: public BaseBuffer {
     }
 
     inline void appendHandleEscaped(v8::Local<v8::String> source, int start=0, int length=-1) {
+      v8::Isolate* isolate = v8::Isolate::GetCurrent();
       size_t oldSize = buffer_.size();
       if (length < 0) {
         length = source->Length() - start;
       }
       buffer_.resize(oldSize + length);
       uint16_t* putBegin = buffer_.data() + oldSize;
-      source->Write(putBegin, start, length, v8::String::NO_NULL_TERMINATION);
+      source->Write(isolate, putBegin, start, length, v8::String::NO_NULL_TERMINATION);
 
       uint16_t* checkIt = putBegin;
       int escCount = 0;
@@ -102,13 +103,14 @@ class TargetBuffer: public BaseBuffer {
 
     inline int appendHandleUnescaped(v8::Local<v8::String> source, int start=0, int length=-1) {
       // return error pos; -1 for ok
+      v8::Isolate* isolate = v8::Isolate::GetCurrent();
       size_t oldSize = buffer_.size();
       if (length < 0) {
         length = source->Length() - start;
       }
       buffer_.resize(oldSize + length);
       uint16_t* putBegin = buffer_.data() + oldSize;
-      source->Write(putBegin, start, length, v8::String::NO_NULL_TERMINATION);
+      source->Write(isolate, putBegin, start, length, v8::String::NO_NULL_TERMINATION);
 
       uint16_t* replTo = putBegin;
       uint16_t* replFrom = putBegin;

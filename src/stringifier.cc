@@ -10,23 +10,24 @@ using v8::FunctionTemplate;
 
 
 Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> options): st_(*this) {
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
   errorClass_.Reset(errorClass);
-  Local<Value> conDefsValue = options->Get(Nan::New("connectors").ToLocalChecked());
+  Local<Value> conDefsValue = options->Get(context, Nan::New("connectors").ToLocalChecked()).ToLocalChecked();
   if (conDefsValue->IsObject()) {
     Local<Object> conDefs = conDefsValue.As<Object>();
-    v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames();
+    v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames(context).ToLocalChecked();
     uint32_t len = names->Length();
     connectors_.resize(len);
     for (uint32_t i=0; i<len; ++i) {
-      Local<String> name = names->Get(i).As<v8::String>();
-      Local<Object> conDef = conDefs->Get(name).As<Object>();
+      Local<String> name = names->Get(context, i).ToLocalChecked().As<v8::String>();
+      Local<Object> conDef = conDefs->Get(context, name).ToLocalChecked().As<Object>();
       StringifyConnector* connector = new StringifyConnector();
       connector->self.Reset(conDef);
       connector->by.Reset(
-        conDef->Get(Nan::New(sBy)).As<Function>()
+        conDef->Get(context, Nan::New(sBy)).ToLocalChecked().As<Function>()
       );
       connector->split.Reset(
-        conDef->Get(Nan::New(sSplit)).As<Function>()
+        conDef->Get(context, Nan::New(sSplit)).ToLocalChecked().As<Function>()
       );
       connector->name.appendHandleEscaped(name);
       connectors_[i] = connector;
@@ -141,6 +142,7 @@ NAN_METHOD(Stringifier::ConnectorOfValue) {
 
 void Stringifier::Init(Local<Object> exports) {
   Nan::HandleScope();
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
   Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);
   newTpl->SetClassName(Nan::New("Stringifier").ToLocalChecked());
@@ -151,15 +153,15 @@ void Stringifier::Init(Local<Object> exports) {
   Nan::SetPrototypeMethod(newTpl, "stringify", Stringify);
   Nan::SetPrototypeMethod(newTpl, "connectorOfValue", ConnectorOfValue);
 
-  constructor.Reset(newTpl->GetFunction());
+  constructor.Reset(newTpl->GetFunction(context).ToLocalChecked());
   sBy.Reset(Nan::New("by").ToLocalChecked());
   sSplit.Reset(Nan::New("split").ToLocalChecked());
   sConstructor.Reset(Nan::New("constructor").ToLocalChecked());
   objectConstructor.Reset(
-    Nan::New<Object>()->Get(Nan::New(sConstructor)).As<Function>()
+    Nan::New<Object>()->Get(context, Nan::New(sConstructor)).ToLocalChecked().As<Function>()
   );
 
-  exports->Set(Nan::New("Stringifier").ToLocalChecked(), newTpl->GetFunction());
+  exports->Set(context, Nan::New("Stringifier").ToLocalChecked(), newTpl->GetFunction(context).ToLocalChecked()).ToChecked();
 
   StringifierTarget::Init();
 }

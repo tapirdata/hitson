@@ -60,7 +60,7 @@ class Stringifier: public node::ObjectWrap {
 };
 
 const Stringifier::StringifyConnector* Stringifier::findConnector(v8::Local<v8::Object> x) const {
-  v8::Local<v8::Value> constructor = x->Get(Nan::New(sConstructor));
+  v8::Local<v8::Value> constructor = x->Get(Nan::GetCurrentContext(), Nan::New(sConstructor)).ToLocalChecked();
   if (constructor->IsFunction()) {
     v8::Local<v8::Value> constructorF = constructor.As<v8::Function>();
     if (constructorF != Nan::New(objectConstructor)) {

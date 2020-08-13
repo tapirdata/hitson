@@ -10,30 +10,31 @@ using v8::FunctionTemplate;
 
 
 Parser::Parser(Local<Function> errorClass, v8::Local<v8::Object> options) {
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
   errorClass_.Reset(errorClass);
-  Local<Value> conDefsValue = options->Get(Nan::New("connectors").ToLocalChecked());
+  Local<Value> conDefsValue = options->Get(context, Nan::New("connectors").ToLocalChecked()).ToLocalChecked();
   if (conDefsValue->IsObject()) {
     Local<Object> conDefs = conDefsValue.As<Object>();
-    v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames();
+    v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames(context).ToLocalChecked();
     uint32_t len = names->Length();
     // connectors_.resize(len);
     for (uint32_t i=0; i<len; ++i) {
-      Local<String> name = names->Get(i).As<v8::String>();
-      Local<Object> conDef = conDefs->Get(name).As<Object>();
+      Local<String> name = names->Get(context, i).ToLocalChecked().As<v8::String>();
+      Local<Object> conDef = conDefs->Get(context, name).ToLocalChecked().As<Object>();
       ParseConnector *connector = new ParseConnector();
       connector->self.Reset(conDef);
-      Local<Value> hasCreateValue = conDef->Get(Nan::New("hasCreate").ToLocalChecked());
-      connector->hasCreate = hasCreateValue->IsBoolean() && hasCreateValue->BooleanValue();
+      Local<Value> hasCreateValue = conDef->Get(context, Nan::New("hasCreate").ToLocalChecked()).ToLocalChecked();
+      connector->hasCreate = hasCreateValue->IsBoolean() && hasCreateValue->IsTrue();
       if (connector->hasCreate) {
         connector->create.Reset(
-          conDef->Get(Nan::New(sCreate)).As<Function>()
+          conDef->Get(context, Nan::New(sCreate)).ToLocalChecked().As<Function>()
         );
       } else {
         connector->precreate.Reset(
-          conDef->Get(Nan::New(sPrecreate)).As<Function>()
+          conDef->Get(context, Nan::New(sPrecreate)).ToLocalChecked().As<Function>()
         );
         connector->postcreate.Reset(
-          conDef->Get(Nan::New(sPostcreate)).As<Function>()
+          conDef->Get(context, Nan::New(sPostcreate)).ToLocalChecked().As<Function>()
         );
       }
       // std::cout << i << " hasCreate=" << connector.hasCreate << std::endl;
@@ -153,6 +154,7 @@ NAN_METHOD(Parser::Parse) {
 
 NAN_METHOD(Parser::ParsePartial) {
   Nan::HandleScope();
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
   if (info.Length() < 1 || !(info[0]->IsString())) {
     return Nan::ThrowTypeError("First argument should be a string");
   }
@@ -181,10 +183,10 @@ NAN_METHOD(Parser::ParsePartial) {
     Local<Value> nextRaw;
     if (howNext->IsArray()) {
       Local<v8::Array> howNextArr = howNext.As<v8::Array>();
-      nextRaw = howNextArr->Get(0);
-      Local<Value> nSkip = howNextArr->Get(1);
+      nextRaw = howNextArr->Get(context, 0).ToLocalChecked();
+      Local<Value> nSkip = howNextArr->Get(context, 1).ToLocalChecked();
       if (nSkip->IsNumber()) {
-        int nSkipVal = nSkip->NumberValue();
+        int nSkipVal = Nan::To<uint32_t>(nSkip).ToChecked();
         ps->skip(nSkipVal);
       }
     } else if (howNext->IsObject()) {
@@ -244,6 +246,7 @@ NAN_METHOD(Parser::ConnectorOfCname) {
 
 void Parser::Init(v8::Local<v8::Object> exports) {
   Nan::HandleScope();
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
   Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);
   newTpl->SetClassName(Nan::New("Parser").ToLocalChecked());
@@ -254,13 +257,13 @@ void Parser::Init(v8::Local<v8::Object> exports) {
   Nan::SetPrototypeMethod(newTpl, "parsePartial", ParsePartial);
   Nan::SetPrototypeMethod(newTpl, "connectorOfCname", ConnectorOfCname);
 
-  constructor.Reset(newTpl->GetFunction());
+  constructor.Reset(newTpl->GetFunction(context).ToLocalChecked());
   sEmpty.Reset(Nan::New("").ToLocalChecked());
   sCreate.Reset(Nan::New("create").ToLocalChecked());
   sPrecreate.Reset(Nan::New("precreate").ToLocalChecked());
   sPostcreate.Reset(Nan::New("postcreate").ToLocalChecked());
 
-  exports->Set(Nan::New("Parser").ToLocalChecked(), newTpl->GetFunction());
+  exports->Set(context, Nan::New("Parser").ToLocalChecked(), newTpl->GetFunction(context).ToLocalChecked()).ToChecked();
 }
 
 

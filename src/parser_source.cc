@@ -179,6 +179,7 @@ v8::Local<v8::Object> ParserSource::getBackreffed(ParseFrame* frame) {
 }
 
 v8::Local<v8::Object> ParserSource::getArray(ParseFrame* parentFrame) {
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
   if (source.nextType == IS) {
     next();
     return getCustom(parentFrame);
@@ -200,26 +201,26 @@ stageNext:
   switch (source.nextType) {
     case TEXT:
     case QUOTE:
-      value->Set(value->Length(), getText());
+      value->Set(context, value->Length(), getText()).ToChecked();
       goto stageHave;
     case LITERAL:
       next();
-      value->Set(value->Length(), getLiteral());
+      value->Set(context, value->Length(), getLiteral()).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     case ARRAY:
       next();
-      value->Set(value->Length(), getArray(&frame));
+      value->Set(context, value->Length(), getArray(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     case OBJECT:
       next();
-      value->Set(value->Length(), getObject(&frame));
+      value->Set(context, value->Length(), getObject(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     case PIPE:
       next();
-      value->Set(value->Length(), getBackreffed(&frame));
+      value->Set(context, value->Length(), getBackreffed(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     default:
@@ -245,6 +246,7 @@ end:
 }
 
 v8::Local<v8::Object> ParserSource::getObject(ParseFrame* parentFrame) {
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
   ParseFrame frame(Nan::New<v8::Object>(), parentFrame);
   v8::Local<v8::String> key;
   if (hasError) goto end;
@@ -277,11 +279,11 @@ stageHaveKey:
   switch (source.nextType) {
     case ENDOBJECT:
       next();
-      frame.value->Set(key, Nan::True());
+      frame.value->Set(context, key, Nan::True()).ToChecked();
       break;
     case PIPE:
       next();
-      frame.value->Set(key, Nan::True());
+      frame.value->Set(context, key, Nan::True()).ToChecked();
       goto stageNext;
     case IS:
       next();
@@ -295,26 +297,26 @@ stageHaveColon:
   switch (source.nextType) {
     case TEXT:
     case QUOTE:
-      frame.value->Set(key, getText());
+      frame.value->Set(context, key, getText()).ToChecked();
       goto stageHaveValue;
     case LITERAL:
       next();
-      frame.value->Set(key, getLiteral());
+      frame.value->Set(context, key, getLiteral()).ToChecked();
       if (hasError) goto end;
       goto stageHaveValue;
     case ARRAY:
       next();
-      frame.value->Set(key, getArray(&frame));
+      frame.value->Set(context, key, getArray(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHaveValue;
     case OBJECT:
       next();
-      frame.value->Set(key, getObject(&frame));
+      frame.value->Set(context, key, getObject(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHaveValue;
     case PIPE:
       next();
-      frame.value->Set(key, getBackreffed(&frame));
+      frame.value->Set(context, key, getBackreffed(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHaveValue;
     default:
@@ -341,6 +343,7 @@ end:
 
 v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
   // std::cout << "getCustom" << std::endl;
+  const v8::Local<v8::Context> context = Nan::GetCurrentContext();
   bool stolenBackref = false;
   ParseFrame frame(Nan::New<v8::Object>(), parentFrame);
   v8::Local<v8::Array> args = Nan::New<v8::Array>();
@@ -370,7 +373,7 @@ v8::Local<v8::Object> ParserSource::getCustom(ParseFrame* parentFrame) {
           v8::Local<v8::Function> precreate = Nan::New<v8::Function>(connector->precreate);
           const int argc = 0;
           v8::Local<v8::Value> argv[argc] = {};
-          frame.value = precreate->Call(Nan::New<v8::Object>(connector->self), argc, argv).As<v8::Object>();
+          frame.value = precreate->Call(context, Nan::New<v8::Object>(connector->self), argc, argv).ToLocalChecked().As<v8::Object>();
           // std::cout << "precreate" << std::endl;
         }
       }
@@ -384,26 +387,26 @@ stageNext:
   switch (source.nextType) {
     case TEXT:
     case QUOTE:
-      args->Set(args->Length(), getText());
+      args->Set(context, args->Length(), getText()).ToChecked();
       goto stageHave;
     case LITERAL:
       next();
-      args->Set(args->Length(), getLiteral());
+      args->Set(context, args->Length(), getLiteral()).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     case ARRAY:
       next();
-      args->Set(args->Length(), getArray(&frame));
+      args->Set(context, args->Length(), getArray(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     case OBJECT:
       next();
-      args->Set(args->Length(), getObject(&frame));
+      args->Set(context, args->Length(), getObject(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     case PIPE:
       next();
-      args->Set(args->Length(), getBackreffed(&frame));
+      args->Set(context, args->Length(), getBackreffed(&frame)).ToChecked();
       if (hasError) goto end;
       goto stageHave;
     default:
@@ -419,13 +422,13 @@ stageHave:
           v8::Local<v8::Function> create = Nan::New<v8::Function>(connector->create);
           const int argc = 1;
           v8::Local<v8::Value> argv[argc] = {args};
-          frame.value = create->Call(Nan::New<v8::Object>(connector->self), argc, argv).As<v8::Object>();
+          frame.value = create->Call(context, Nan::New<v8::Object>(connector->self), argc, argv).ToLocalChecked().As<v8::Object>();
           // std::cout << "create" << std::endl;
         } else {
           v8::Local<v8::Function> postcreate = Nan::New<v8::Function>(connector->postcreate);
           const int argc = 2;
           v8::Local<v8::Value> argv[argc] = {frame.value, args};
-          v8::Local<v8::Value> newValue = postcreate->Call(Nan::New<v8::Object>(connector->self), argc, argv);
+          v8::Local<v8::Value> newValue = postcreate->Call(context, Nan::New<v8::Object>(connector->self), argc, argv).ToLocalChecked();
           if (newValue->IsObject()) {
             if (newValue != frame.value) {
               if (frame.isBackreffed) {
