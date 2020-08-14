@@ -11,7 +11,7 @@ interface Connector<T> {
   split: (x: T) => any[]
   create?: (...args: any[]) => T
   precreate?: () => T
-  postcreate?: (x: T, args: any[]) => void
+  postcreate?: (x: T, args: any[]) => T | null | undefined
   name?: string
   hasCreate?: boolean
 }
