@@ -1,17 +1,16 @@
 language: node_js
+dist: bionic
 node_js:
   - "14.8"
   - "12.18"
-before_install:
-  - if [[ `npm -v` < 5* ]]; then npm i -g npm@5; fi
 install:
   - npm install
 env:
-  - CXX=g++-4.8
+  - CXX=g++-7.5
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    - g++-4.8
+    - g++-7.5
 
