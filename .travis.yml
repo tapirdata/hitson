@@ -6,11 +6,11 @@ node_js:
 install:
   - npm install
 env:
-  - CXX=g++-7.5
+  - CXX=g++-7
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    - g++-7.5
+    - g++-7
 
