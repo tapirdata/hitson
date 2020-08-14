@@ -1,5 +1,5 @@
 // tslint:disable:max-classes-per-file
-import wson from "../lib/"
+import wson, { CreateOptions } from "../lib/"
 
 class ParseError extends Error {
 
@@ -43,7 +43,7 @@ export interface Factory {
   StringifierError: typeof StringifierError
 }
 
-const factory = ((createOptions: any) => {
+const factory = ((createOptions: CreateOptions) => {
   const stringifier = new wson.Stringifier(StringifierError, createOptions)
   const parser = new wson.Parser(ParseError, createOptions)
   return {

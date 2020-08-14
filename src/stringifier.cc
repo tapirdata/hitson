@@ -1,33 +1,24 @@
 #include "stringifier.h"
 
-using v8::Local;
-using v8::Value;
-using v8::String;
-using v8::Array;
-using v8::Object;
-using v8::Function;
-using v8::FunctionTemplate;
-
-
-Stringifier::Stringifier(Local<Function> errorClass, v8::Local<v8::Object> options): st_(*this) {
+Stringifier::Stringifier(v8::Local<v8::Function> errorClass, v8::Local<v8::Object> options): st_(*this) {
   const v8::Local<v8::Context> context = Nan::GetCurrentContext();
   errorClass_.Reset(errorClass);
-  Local<Value> conDefsValue = options->Get(context, Nan::New("connectors").ToLocalChecked()).ToLocalChecked();
+  v8::Local<v8::Value> conDefsValue = options->Get(context, Nan::New("connectors").ToLocalChecked()).ToLocalChecked();
   if (conDefsValue->IsObject()) {
-    Local<Object> conDefs = conDefsValue.As<Object>();
+    v8::Local<v8::Object> conDefs = conDefsValue.As<v8::Object>();
     v8::Local<v8::Array> names = conDefs->GetOwnPropertyNames(context).ToLocalChecked();
     uint32_t len = names->Length();
     connectors_.resize(len);
     for (uint32_t i=0; i<len; ++i) {
-      Local<String> name = names->Get(context, i).ToLocalChecked().As<v8::String>();
-      Local<Object> conDef = conDefs->Get(context, name).ToLocalChecked().As<Object>();
+      v8::Local<v8::String> name = names->Get(context, i).ToLocalChecked().As<v8::String>();
+      v8::Local<v8::Object> conDef = conDefs->Get(context, name).ToLocalChecked().As<v8::Object>();
       StringifyConnector* connector = new StringifyConnector();
       connector->self.Reset(conDef);
       connector->by.Reset(
-        conDef->Get(context, Nan::New(sBy)).ToLocalChecked().As<Function>()
+        conDef->Get(context, Nan::New(sBy)).ToLocalChecked().As<v8::Function>()
       );
       connector->split.Reset(
-        conDef->Get(context, Nan::New(sSplit)).ToLocalChecked().As<Function>()
+        conDef->Get(context, Nan::New(sSplit)).ToLocalChecked().As<v8::Function>()
       );
       connector->name.appendHandleEscaped(name);
       connectors_[i] = connector;
@@ -58,16 +49,16 @@ NAN_METHOD(Stringifier::New) {
   if (info.Length() < 2 || !(info[0]->IsObject())) {
     return Nan::ThrowTypeError("Second argument should be an option object");
   }
-  Local<Function> errorClass = info[0].As<Function>();
-  Local<Object> options = info[1].As<Object>();
+  v8::Local<v8::Function> errorClass = info[0].As<v8::Function>();
+  v8::Local<v8::Object> options = info[1].As<v8::Object>();
   if (info.IsConstructCall()) {
     Stringifier* obj = new Stringifier(errorClass, options);
     obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
   } else {
     const int argc = 2;
-    Local<Value> argv[argc] = {errorClass, options};
-    Local<Function> cons = Nan::New<Function>(constructor);
+    v8::Local<v8::Value> argv[argc] = {errorClass, options};
+    v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
     // info.GetReturnValue().Set(cons->NewInstance(argc, argv));
     Nan::MaybeLocal<v8::Object> result = Nan::NewInstance(cons, argc, argv);
     if (!result.IsEmpty()) {
@@ -109,14 +100,14 @@ NAN_METHOD(Stringifier::Stringify) {
 
   Nan::Callback *haverefCb = NULL;
   if (info.Length() >= 2 && (info[1]->IsFunction())) {
-    Local<Function> haveCbHandle = info[1].As<Function>();
+    v8::Local<v8::Function> haveCbHandle = info[1].As<v8::Function>();
     haverefCb = new Nan::Callback(haveCbHandle);
   }
 
   st.clear(haverefCb);
   st.put(info[0]);
 
-  Local<Value> result = st.target.getHandle();
+  v8::Local<v8::Value> result = st.target.getHandle();
   delete haverefCb;
   info.GetReturnValue().Set(result);
 }
@@ -129,22 +120,22 @@ NAN_METHOD(Stringifier::ConnectorOfValue) {
   Stringifier* self = node::ObjectWrap::Unwrap<Stringifier>(info.This());
   const StringifyConnector* connector = NULL;
   if (info[0]->IsObject()) {
-    connector = self->findConnector(info[0].As<Object>());
+    connector = self->findConnector(info[0].As<v8::Object>());
   }
-  Local<Value> result;
+  v8::Local<v8::Value> result;
   if (connector) {
-    result = Nan::New<Object>(connector->self);
+    result = Nan::New<v8::Object>(connector->self);
   } else {
     result = Nan::Null();
   }
   info.GetReturnValue().Set(result);
 }
 
-void Stringifier::Init(Local<Object> exports) {
+void Stringifier::Init(v8::Local<v8::Object> exports) {
   Nan::HandleScope();
   const v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
-  Local<FunctionTemplate> newTpl = Nan::New<FunctionTemplate>(New);
+  v8::Local<v8::FunctionTemplate> newTpl = Nan::New<v8::FunctionTemplate>(New);
   newTpl->SetClassName(Nan::New("Stringifier").ToLocalChecked());
   newTpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -158,7 +149,7 @@ void Stringifier::Init(Local<Object> exports) {
   sSplit.Reset(Nan::New("split").ToLocalChecked());
   sConstructor.Reset(Nan::New("constructor").ToLocalChecked());
   objectConstructor.Reset(
-    Nan::New<Object>()->Get(context, Nan::New(sConstructor)).ToLocalChecked().As<Function>()
+    Nan::New<v8::Object>()->Get(context, Nan::New(sConstructor)).ToLocalChecked().As<v8::Function>()
   );
 
   exports->Set(context, Nan::New("Stringifier").ToLocalChecked(), newTpl->GetFunction(context).ToLocalChecked()).ToChecked();

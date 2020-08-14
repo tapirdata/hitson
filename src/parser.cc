@@ -86,7 +86,7 @@ NAN_METHOD(Parser::New) {
   if (info.Length() < 1 || !(info[0]->IsFunction())) {
     return Nan::ThrowTypeError("First argument should be an error constructor");
   }
-  if (info.Length() < 2 || !(info[0]->IsObject())) {
+  if (info.Length() < 2 || !(info[1]->IsObject())) {
     return Nan::ThrowTypeError("Second argument should be an option object");
   }
   Local<Function> errorClass = info[0].As<Function>();
