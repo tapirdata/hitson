@@ -4,7 +4,7 @@ import { expect } from "chai"
 import { saveRepr } from "./fixtures/helpers"
 import setups from "./fixtures/setups"
 import pairs from "./fixtures/stringify-pairs"
-import wsonFactory from "./wsonFactory"
+import wsonFactory, { ParseError } from "./wsonFactory"
 
 for (const setup of setups) {
   describe(setup.name, () => {
@@ -16,11 +16,14 @@ for (const setup of setups) {
         }
         if (pair.parseFailPos != null) {
           it(`should fail to parse '${pair.s}' at ${pair.parseFailPos}`, () => {
-            let e
+            let e;
             try {
               wson.parse(pair.s, {backrefCb: pair.backrefCb})
             } catch (someE) {
-              e = someE
+              e = someE as ParseError
+            }
+            if (e == null) {
+              throw new Error('ParseError expected')
             }
             expect(e.name).to.be.equal("ParseError")
             expect(e.pos).to.be.equal(pair.parseFailPos)
