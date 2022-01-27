@@ -1,27 +1,26 @@
-import util = require("util")
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import util = require('util');
 
-function saveRepr(x: any) {
+export function saveRepr(x: unknown): string {
   try {
-    return util.inspect(x, {depth: null})
-  } catch (error0)  {
+    return util.inspect(x, { depth: null });
+  } catch (error0) {
     try {
-      return JSON.stringify(x)
+      return JSON.stringify(x);
     } catch (error1) {
-      return String(x)
+      return String(x);
     }
   }
 }
 
-interface Pair {
-  x?: any
-  s?: string
-  failPos?: number
-  stringifyFailPos?: number
-  parseFailPos?: number
-  backrefCb?: (refNum: number) => any
-  haverefCb?: (item: any) => number | null
-  nrs?: any
-  col?: any
+export interface Pair {
+  x?: any;
+  s?: string;
+  failPos?: number;
+  stringifyFailPos?: number;
+  parseFailPos?: number;
+  backrefCb?: (refNum: number) => any;
+  haverefCb?: (item: any) => number | null;
+  nrs?: any;
+  col?: any;
 }
-
-export { saveRepr, Pair }

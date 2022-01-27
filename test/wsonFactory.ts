@@ -1,71 +1,83 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // tslint:disable:max-classes-per-file
-import wson, { CreateOptions } from "../lib/"
+import wson, { CreateOptions } from '../lib/';
 
 class ParseError extends Error {
-
-  public s: string
-  public pos: number
-  public cause: string
-  public message: string
-  public name: string
+  public s: string;
+  public pos: number;
+  public cause: string;
+  public message: string;
+  public name: string;
 
   constructor(s: string, pos: number, cause: string) {
-    super()
-    this.s = s
-    this.pos = pos
-    this.cause = cause
-    this.message = "bad syntax"
-    this.name = "ParseError"
+    super();
+    this.s = s;
+    this.pos = pos;
+    this.cause = cause;
+    this.message = 'bad syntax';
+    this.name = 'ParseError';
   }
 }
 
 class StringifierError extends Error {
-
-  public s: string
-  public pos: number
-  public cause: string
-  public message: string
-  public name: string
+  public s: string;
+  public pos: number;
+  public cause: string;
+  public message: string;
+  public name: string;
 
   constructor(s: string, pos: number, cause: string) {
-    super()
-    this.s = s
-    this.pos = pos
-    this.cause = cause
-    this.message = "bad syntax"
-    this.name = "StringifierError"
+    super();
+    this.s = s;
+    this.pos = pos;
+    this.cause = cause;
+    this.message = 'bad syntax';
+    this.name = 'StringifierError';
   }
 }
 
 export interface Factory {
-  (options: any): any
-  ParseError: typeof ParseError
-  StringifierError: typeof StringifierError
+  (options: any): any;
+  ParseError: typeof ParseError;
+  StringifierError: typeof StringifierError;
 }
 
 const factory = ((createOptions: CreateOptions) => {
-  const stringifier = new wson.Stringifier(StringifierError, createOptions)
-  const parser = new wson.Parser(ParseError, createOptions)
+  const stringifier = new wson.Stringifier(StringifierError, createOptions);
+  const parser = new wson.Parser(ParseError, createOptions);
   return {
-    escape(s: string) { return stringifier.escape(s) },
-    unescape(s: string) { return parser.unescape(s) },
-    getTypeid(x: any) { return stringifier.getTypeid(x) },
+    escape(s: string) {
+      return stringifier.escape(s);
+    },
+    unescape(s: string) {
+      return parser.unescape(s);
+    },
+    getTypeid(x: any) {
+      return stringifier.getTypeid(x);
+    },
     stringify(x: any, options: any) {
-      return stringifier.stringify(x, options.haverefCb)
+      return stringifier.stringify(x, options.haverefCb);
     },
     parse(s: string, options: any) {
-      return parser.parse(s, options.backrefCb)
+      return parser.parse(s, options.backrefCb);
     },
     parsePartial(s: string, options: any) {
-      return parser.parsePartial(s, options.howNext, options.cb, options.backrefCb)
+      return parser.parsePartial(s, options.howNext, options.cb, options.backrefCb);
     },
-    connectorOfCname(cname: string) { return parser.connectorOfCname(cname) },
-    connectorOfValue(value: any) { return stringifier.connectorOfValue(value) },
-  }
-}) as Factory
+    connectorOfCname(cname: string) {
+      return parser.connectorOfCname(cname);
+    },
+    connectorOfValue(value: any) {
+      return stringifier.connectorOfValue(value);
+    },
+  };
+}) as Factory;
 
-factory.ParseError = ParseError
-factory.StringifierError = StringifierError
+factory.ParseError = ParseError;
+factory.StringifierError = StringifierError;
 
-export default factory
-export { ParseError, StringifierError }
+export default factory;
+export { ParseError, StringifierError };

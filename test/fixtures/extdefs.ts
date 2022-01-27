@@ -1,40 +1,34 @@
-// tslint:disable:max-classes-per-file
+export type PointArgs = [number | undefined, number | undefined];
 
-class Point {
+export class Point {
+  public x?: number;
+  public y?: number;
 
-  public x?: number
-  public y?: number
-
-  constructor(...args: number[]) {
-    this.initialize(...args)
+  constructor(...args: PointArgs) {
+    this.initialize(...args);
   }
 
-  public initialize(x?: number, y?: number) {
-    this.x = x
-    this.y = y
+  public initialize(x?: number, y?: number): void {
+    this.x = x;
+    this.y = y;
   }
 
-  public __wsonsplit__() { return [this.x, this.y] }
+  public __wsonsplit__(): PointArgs {
+    return [this.x, this.y];
+  }
 }
 
-class Polygon {
-
-  public points: Point[]
+export class Polygon {
+  public points: Point[];
 
   constructor(points?: Point[]) {
-    this.points = points || []
+    this.points = points || [];
   }
 }
 
-class Foo {
+export type FooValue = unknown;
+export type FooArgs = [FooValue, FooValue];
 
-  public x: any
-  public y: any
-
-  constructor(x: any, y: any) {
-    this.x = x
-    this.y = y
-  }
+export class Foo {
+  constructor(public x: FooValue, public y: FooValue) {}
 }
-
-export { Foo, Point, Polygon }
