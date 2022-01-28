@@ -3,4 +3,3 @@ test/
 build/
 @types/
 .npmignore
-.travis.yml
