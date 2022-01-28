@@ -1,13 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// tslint:disable:max-classes-per-file
-import wson, { CreateOptions } from '../lib/';
+import { OpOptions, WsonError, Value, FactoryOptions, Connector, HowNext, PartialCb } from '../src/types';
+import addonFactory from '../src/';
 
-class ParseError extends Error {
+class ParseError extends Error implements WsonError {
   public s: string;
   public pos: number;
   public cause: string;
@@ -24,7 +18,7 @@ class ParseError extends Error {
   }
 }
 
-class StringifierError extends Error {
+class StringifierError extends Error implements WsonError {
   public s: string;
   public pos: number;
   public cause: string;
@@ -41,15 +35,29 @@ class StringifierError extends Error {
   }
 }
 
+export interface Wson {
+  escape(s: string): string;
+  unescape(s: string): string;
+  getTypeid(x: Value): number;
+  stringify(x: Value, opt: OpOptions): string;
+  parse(s: string, opt: OpOptions): Value;
+  parsePartial(s: string, opt: OpOptions): Value;
+  connectorOfCname(name: string): Connector<unknown>;
+  connectorOfValue(value: Value): Connector<unknown>;
+}
+
 export interface Factory {
-  (options: any): any;
+  (options: FactoryOptions): Wson;
   ParseError: typeof ParseError;
   StringifierError: typeof StringifierError;
 }
 
-const factory = ((createOptions: CreateOptions) => {
-  const stringifier = new wson.Stringifier(StringifierError, createOptions);
-  const parser = new wson.Parser(ParseError, createOptions);
+const dftHowNext: HowNext = false;
+const dftCb: PartialCb = () => dftHowNext;
+
+function factory(options: FactoryOptions): Wson {
+  const stringifier = new addonFactory.Stringifier(StringifierError, options);
+  const parser = new addonFactory.Parser(ParseError, options);
   return {
     escape(s: string) {
       return stringifier.escape(s);
@@ -57,26 +65,26 @@ const factory = ((createOptions: CreateOptions) => {
     unescape(s: string) {
       return parser.unescape(s);
     },
-    getTypeid(x: any) {
+    getTypeid(x: Value) {
       return stringifier.getTypeid(x);
     },
-    stringify(x: any, options: any) {
-      return stringifier.stringify(x, options.haverefCb);
+    stringify(x: Value, opt: OpOptions) {
+      return stringifier.stringify(x, opt.haverefCb);
     },
-    parse(s: string, options: any) {
-      return parser.parse(s, options.backrefCb);
+    parse(s: string, opt: OpOptions) {
+      return parser.parse(s, opt.backrefCb);
     },
-    parsePartial(s: string, options: any) {
-      return parser.parsePartial(s, options.howNext, options.cb, options.backrefCb);
+    parsePartial(s: string, opt: OpOptions) {
+      return parser.parsePartial(s, opt.howNext ?? dftHowNext, opt.cb ?? dftCb, opt.backrefCb);
     },
     connectorOfCname(cname: string) {
       return parser.connectorOfCname(cname);
     },
-    connectorOfValue(value: any) {
+    connectorOfValue(value: Value) {
       return stringifier.connectorOfValue(value);
     },
   };
-}) as Factory;
+}
 
 factory.ParseError = ParseError;
 factory.StringifierError = StringifierError;

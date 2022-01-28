@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import _ = require('lodash');
 import { expect } from 'chai';
 
@@ -13,13 +10,11 @@ for (const setup of setups) {
     const wson = wsonFactory(setup.options);
     it('should allow to get connector by cname', () => {
       const connector = wson.connectorOfCname('Point');
-      // tslint:disable-next-line no-unused-expression
       expect(connector).to.exist;
       expect(connector.by).to.be.equal(Point);
     });
     it('should allow to get connector by value', () => {
       const connector = wson.connectorOfValue(new Point(0, 0));
-      // tslint:disable-next-line no-unused-expression
       expect(connector).to.exist;
       expect(connector.by).to.be.equal(Point);
     });

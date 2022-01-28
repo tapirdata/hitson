@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import _ = require('lodash');
 import { expect } from 'chai';
 import { saveRepr } from './fixtures/helpers';
@@ -23,7 +18,7 @@ for (const setup of setups) {
             expect(() => wson.stringify(pair.x, { haverefCb: pair.haverefCb })).to.throw();
           });
         } else {
-          it(`should stringify ${saveRepr(pair.x)} as '${pair.s}' `, () => {
+          it(`should stringify ${saveRepr(pair.x)} as ${saveRepr(pair.s)} `, () => {
             expect(wson.stringify(pair.x, { haverefCb: pair.haverefCb })).to.be.equal(pair.s);
           });
         }

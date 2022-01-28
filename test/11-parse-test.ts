@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import _ = require('lodash');
 import { expect } from 'chai';
 
@@ -15,14 +11,15 @@ for (const setup of setups) {
     const wson = wsonFactory(setup.options);
     describe('parse', () => {
       for (const pair of pairs) {
-        if (!_.has(pair, 's')) {
+        const s = pair.s;
+        if (s == null) {
           continue;
         }
         if (pair.parseFailPos != null) {
-          it(`should fail to parse '${pair.s}' at ${pair.parseFailPos}`, () => {
+          it(`should fail to parse ${saveRepr(s)}' at ${pair.parseFailPos}`, () => {
             let e;
             try {
-              wson.parse(pair.s, { backrefCb: pair.backrefCb });
+              wson.parse(s, { backrefCb: pair.backrefCb });
             } catch (someE) {
               e = someE as ParseError;
             }
@@ -33,8 +30,8 @@ for (const setup of setups) {
             expect(e.pos).to.be.equal(pair.parseFailPos);
           });
         } else {
-          it(`should parse '${pair.s}' as ${saveRepr(pair.x)}`, () => {
-            expect(wson.parse(pair.s, { backrefCb: pair.backrefCb })).to.be.deep.equal(pair.x);
+          it(`should parse ${saveRepr(s)} as ${saveRepr(pair.x)}`, () => {
+            expect(wson.parse(s, { backrefCb: pair.backrefCb })).to.be.deep.equal(pair.x);
           });
         }
       }

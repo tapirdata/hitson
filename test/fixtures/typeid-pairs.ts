@@ -1,4 +1,6 @@
-export default [
+import { Value } from '../../src/types';
+
+const pairs: [Value, number][] = [
   [undefined, 1],
   [null, 2],
   [false, 4],
@@ -10,3 +12,5 @@ export default [
   [[], 24],
   [{}, 32],
 ];
+
+export default pairs;

@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import util = require('util');
+import { HowNext, Value } from '../../src/types';
 
 export function saveRepr(x: unknown): string {
   try {
@@ -14,13 +14,13 @@ export function saveRepr(x: unknown): string {
 }
 
 export interface Pair {
-  x?: any;
+  x?: Value;
   s?: string;
   failPos?: number;
   stringifyFailPos?: number;
   parseFailPos?: number;
-  backrefCb?: (refNum: number) => any;
-  haverefCb?: (item: any) => number | null;
-  nrs?: any;
-  col?: any;
+  backrefCb?: (refNum: number) => Value;
+  haverefCb?: (item: Value) => number | null;
+  nrs?: HowNext[];
+  col?: unknown[];
 }

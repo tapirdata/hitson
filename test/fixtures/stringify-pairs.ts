@@ -1,33 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Value } from '../../src/types';
 import { Foo, Point, Polygon } from './extdefs';
 import { Pair } from './helpers';
 
-const cycArr0: any[] = ['a'];
+const cycArr0: Value[] = ['a'];
 cycArr0.push(cycArr0);
-const cycArr1: any[] = ['a', ['b']];
-cycArr1[1].push(cycArr1[1]);
-const cycArr2: any[] = ['a', ['b']];
-cycArr2[1].push(cycArr2);
+const cycArr1: Value[] = ['a', ['b']];
+(cycArr1[1] as Value[]).push(cycArr1[1]);
+const cycArr2: Value[] = ['a', ['b']];
+(cycArr2[1] as Value[]).push(cycArr2);
 
-const cycObj0: any = { a: 3 };
+const cycObj0: Record<string, Value> = { a: 3 };
 cycObj0.x = cycObj0;
-const cycObj1: any = { a: 3, b: {} };
-cycObj1.b.r0 = cycObj1.b;
-const cycObj2: any = { a: 3, b: {} };
-cycObj2.b.r1 = cycObj2;
+const cycObj1: Record<string, Value> = { a: 3, b: {} };
+(cycObj1.b as Record<string, Value>).r0 = cycObj1.b;
+const cycObj2: Record<string, Value> = { a: 3, b: {} };
+(cycObj2.b as Record<string, Value>).r1 = cycObj2;
 
-const cycPoint: any = new Point(8, 9);
-cycPoint.x = cycPoint;
+const cycPoint = new Point(8, 9);
+(cycPoint as unknown as Record<string, Value>).x = cycPoint;
 
 const extBacks = [[100], [101], [102]];
 
 const backrefCb = (refNum: number): number[] => extBacks[refNum];
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-const haverefCb = (item: any): number | null => {
+const haverefCb = (item: Value): number | null => {
   for (let idx = 0; idx < extBacks.length; idx++) {
     const back = extBacks[idx];
     if (item === back) {

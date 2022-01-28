@@ -1,4 +1,4 @@
-const pairs = [
+const pairs: [null | string, string][] = [
   ['', ''],
   ['abc', 'abc'],
   ['a:bc', 'a`ibc'],
