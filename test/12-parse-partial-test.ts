@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
 import { HowNext, Value } from '../src/types';
-import { saveRepr } from './fixtures/helpers';
+import { safeRepr } from './fixtures/helpers';
 import pairs from './fixtures/partial-pairs';
 import setups from './fixtures/setups';
 import wsonFactory, { ParseError } from './wsonFactory';
@@ -33,7 +33,7 @@ for (const setup of setups) {
           continue;
         }
         if (pair.failPos != null) {
-          it(`should fail to parse ${saveRepr(s)} at ${pair.failPos}`, () => {
+          it(`should fail to parse '${s}' at ${pair.failPos}`, () => {
             let e;
             try {
               collectPartial(s, pair.nrs ?? [], pair.backrefCb);
@@ -47,7 +47,7 @@ for (const setup of setups) {
             expect(e.pos).to.be.equal(pair.failPos);
           });
         } else {
-          it(`should parse ${saveRepr(s)} as ${saveRepr(pair.col)} (nrs=${saveRepr(pair.nrs)})`, () => {
+          it(`should parse '${s}' as ${safeRepr(pair.col)} (nrs=${safeRepr(pair.nrs)})`, () => {
             expect(collectPartial(s, pair.nrs ?? [], pair.backrefCb)).to.be.deep.equal(pair.col);
           });
         }

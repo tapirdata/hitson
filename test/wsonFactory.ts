@@ -1,37 +1,28 @@
-import { OpOptions, WsonError, Value, FactoryOptions, Connector, HowNext, PartialCb } from '../src/types';
+import {
+  OpOptions,
+  Value,
+  FactoryOptions,
+  Connector,
+  HowNext,
+  PartialCb,
+  BaseStringifyError,
+  BaseParseError,
+} from '../src/types';
 import addonFactory from '../src/';
 
-class ParseError extends Error implements WsonError {
-  public s: string;
-  public pos: number;
-  public cause: string;
-  public message: string;
-  public name: string;
-
-  constructor(s: string, pos: number, cause: string) {
-    super();
-    this.s = s;
-    this.pos = pos;
-    this.cause = cause;
-    this.message = 'bad syntax';
-    this.name = 'ParseError';
+class StringifyError extends BaseStringifyError {
+  name = 'StringifierError';
+  constructor(x: Value, cause: string) {
+    super(x, cause);
+    this.message = 'unexpected value';
   }
 }
 
-class StringifierError extends Error implements WsonError {
-  public s: string;
-  public pos: number;
-  public cause: string;
-  public message: string;
-  public name: string;
-
+class ParseError extends BaseParseError {
+  name = 'ParseError';
   constructor(s: string, pos: number, cause: string) {
-    super();
-    this.s = s;
-    this.pos = pos;
-    this.cause = cause;
+    super(s, pos, cause);
     this.message = 'bad syntax';
-    this.name = 'StringifierError';
   }
 }
 
@@ -49,14 +40,14 @@ export interface Wson {
 export interface Factory {
   (options: FactoryOptions): Wson;
   ParseError: typeof ParseError;
-  StringifierError: typeof StringifierError;
+  StringifierError: typeof StringifyError;
 }
 
 const dftHowNext: HowNext = false;
 const dftCb: PartialCb = () => dftHowNext;
 
 function factory(options: FactoryOptions): Wson {
-  const stringifier = new addonFactory.Stringifier(StringifierError, options);
+  const stringifier = new addonFactory.Stringifier(StringifyError, options);
   const parser = new addonFactory.Parser(ParseError, options);
   return {
     escape(s: string) {
@@ -87,7 +78,7 @@ function factory(options: FactoryOptions): Wson {
 }
 
 factory.ParseError = ParseError;
-factory.StringifierError = StringifierError;
+factory.StringifyError = StringifyError;
 
 export default factory;
-export { ParseError, StringifierError };
+export { ParseError, StringifyError };

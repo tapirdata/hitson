@@ -1,7 +1,7 @@
 import util = require('util');
 import { HowNext, Value } from '../../src/types';
 
-export function saveRepr(x: unknown): string {
+export function safeRepr(x: unknown): string {
   try {
     return util.inspect(x, { depth: null });
   } catch (error0) {

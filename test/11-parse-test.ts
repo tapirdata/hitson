@@ -1,7 +1,7 @@
 import _ = require('lodash');
 import { expect } from 'chai';
 
-import { saveRepr } from './fixtures/helpers';
+import { safeRepr } from './fixtures/helpers';
 import setups from './fixtures/setups';
 import pairs from './fixtures/stringify-pairs';
 import wsonFactory, { ParseError } from './wsonFactory';
@@ -11,12 +11,12 @@ for (const setup of setups) {
     const wson = wsonFactory(setup.options);
     describe('parse', () => {
       for (const pair of pairs) {
-        const s = pair.s;
+        const { s } = pair;
         if (s == null) {
           continue;
         }
         if (pair.parseFailPos != null) {
-          it(`should fail to parse ${saveRepr(s)}' at ${pair.parseFailPos}`, () => {
+          it(`should fail to parse '${s}' at ${pair.parseFailPos}`, () => {
             let e;
             try {
               wson.parse(s, { backrefCb: pair.backrefCb });
@@ -30,7 +30,7 @@ for (const setup of setups) {
             expect(e.pos).to.be.equal(pair.parseFailPos);
           });
         } else {
-          it(`should parse ${saveRepr(s)} as ${saveRepr(pair.x)}`, () => {
+          it(`should parse '${s}' as ${safeRepr(pair.x)}`, () => {
             expect(wson.parse(s, { backrefCb: pair.backrefCb })).to.be.deep.equal(pair.x);
           });
         }

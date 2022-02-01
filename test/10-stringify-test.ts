@@ -1,6 +1,6 @@
 import _ = require('lodash');
 import { expect } from 'chai';
-import { saveRepr } from './fixtures/helpers';
+import { safeRepr } from './fixtures/helpers';
 import setups from './fixtures/setups';
 import pairs from './fixtures/stringify-pairs';
 import wsonFactory from './wsonFactory';
@@ -14,11 +14,11 @@ for (const setup of setups) {
           continue;
         }
         if (pair.stringifyFailPos != null) {
-          it(`should fail to stringify ${saveRepr(pair.x)}`, () => {
+          it(`should fail to stringify ${safeRepr(pair.x)}`, () => {
             expect(() => wson.stringify(pair.x, { haverefCb: pair.haverefCb })).to.throw();
           });
         } else {
-          it(`should stringify ${saveRepr(pair.x)} as ${saveRepr(pair.s)} `, () => {
+          it(`should stringify ${safeRepr(pair.x)} as ${safeRepr(pair.s)} `, () => {
             expect(wson.stringify(pair.x, { haverefCb: pair.haverefCb })).to.be.equal(pair.s);
           });
         }

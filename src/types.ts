@@ -1,26 +1,41 @@
 export type Value = unknown;
-type Arg = unknown;
+export type AnyArgs = unknown[];
+export type Class<T = Value, A extends AnyArgs = AnyArgs> = { new (...args: A): T };
 
-export interface WsonError {
-  s: string;
-  pos: number;
-  cause: string;
-  message: string;
-  name: string;
+export class BaseStringifyError extends Error {
+  constructor(public x: Value, public cause: string) {
+    super();
+  }
+  message = '';
+  name = '';
 }
-export type WsonErrorClass = new (s: string, pos: number, cause: string) => WsonError;
+export type BaseStringifyErrorClass = new (x: Value, cause: string) => BaseStringifyError;
+
+export class BaseParseError extends Error {
+  constructor(public s: string, public pos: number, public cause: string) {
+    super();
+  }
+  message = '';
+  name = '';
+}
+export type BaseParseErrorClass = new (s: string, pos: number, cause: string) => BaseParseError;
 
 export type HowNext = boolean | [boolean, number] | null | Error;
 export type PartialCb = (isText: boolean, part: string, pos: number) => HowNext;
 export type BackrefCb = (idx: number) => Value;
 export type HaverefCb = (x: Value) => number | null;
 
-export interface Connector<T, A extends [Arg] = [Arg]> {
-  by: T;
-  split: (x: T) => A;
-  create?: (...args: A) => T;
-  precreate?: () => T;
-  postcreate?: (x: T, args: A) => T | null | undefined;
+export type Splitter<T = unknown, A extends AnyArgs = AnyArgs> = (x: T) => A;
+export type Creator<T = unknown, A extends AnyArgs = AnyArgs> = (args: A) => T;
+export type Precreator<T = unknown> = () => T;
+export type Postcreator<T = unknown, A extends AnyArgs = AnyArgs> = (x: T, args: A) => T | null | undefined;
+
+export interface Connector<T, A extends AnyArgs = AnyArgs> {
+  by: Class<T, A>;
+  split: Splitter<T, A>;
+  create?: Creator<T, A>;
+  precreate?: Precreator<T>;
+  postcreate?: Postcreator<T, A>;
   name?: string;
   hasCreate?: boolean;
 }
@@ -51,6 +66,6 @@ interface AddonParser {
 }
 
 export interface AddonFactory {
-  Stringifier: new (err: WsonErrorClass, opt: FactoryOptions) => AddonStringifier;
-  Parser: new (err: WsonErrorClass, opt: FactoryOptions) => AddonParser;
+  Stringifier: new (err: BaseStringifyErrorClass, opt: FactoryOptions) => AddonStringifier;
+  Parser: new (err: BaseParseErrorClass, opt: FactoryOptions) => AddonParser;
 }
